@@ -1,0 +1,17 @@
+Nonogram is a free and open-source picture logic puzzle game. Use numerical clues along the rows and columns to fill in grid tiles and reveal hidden pixel art images.
+
+Designed to be lightweight and user-friendly, Nonogram offers a clean, distraction-free environment for casual puzzle solving and brain training.
+
+Key Features:
+
+100% Free and Open Source (FOSS)
+
+No advertisements, no microtransactions, and no tracking
+
+Multiple grid sizes and difficulty levels
+
+Intuitive controls for marking tiles and crossouts
+
+Offline play support
+
+Clean, responsive UI
