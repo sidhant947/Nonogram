@@ -6,28 +6,12 @@ class LevelGenerator {
   final Map<int, GameLevel> _cache = {};
   final Set<int> _generating = {};
 
-  GameLevel generate(int levelNumber) {
-    GameLevel level;
-    if (_cache.containsKey(levelNumber)) {
-      debugPrint('⚡ [LevelGenerator] Cache HIT for level $levelNumber.');
-      level = _cache.remove(levelNumber)!;
-    } else {
-      debugPrint('🐌 [LevelGenerator] Cache MISS for level $levelNumber. Generating.');
-      level = _generateInternal(levelNumber);
-    }
-    _generating.remove(levelNumber);
-    _pregenerateNext(levelNumber + 1);
-    return level;
+  LevelGenerator() {
+    pregenerateBatch(1, count: 100);
   }
 
-  GameLevel _generateInternal(int levelNumber) {
-    final random = Random(levelNumber);
-    final gridSize = _getGridSize(levelNumber);
-    return _generateLevelWithSeed(levelNumber, gridSize, random);
-  }
-
-  void _pregenerateNext(int startLevel) {
-    for (int i = 0; i < 3; i++) {
+  void pregenerateBatch(int startLevel, {int count = 100}) {
+    for (int i = 0; i < count; i++) {
       final levelNumber = startLevel + i;
       if (!_cache.containsKey(levelNumber) && !_generating.contains(levelNumber)) {
         _generating.add(levelNumber);
@@ -41,13 +25,31 @@ class LevelGenerator {
     }
   }
 
+  GameLevel generate(int levelNumber) {
+    GameLevel level;
+    if (_cache.containsKey(levelNumber)) {
+      debugPrint('⚡ [LevelGenerator] Cache HIT for level $levelNumber.');
+      level = _cache.remove(levelNumber)!;
+    } else {
+      debugPrint('🐌 [LevelGenerator] Cache MISS for level $levelNumber. Generating.');
+      level = _generateInternal(levelNumber);
+    }
+    _generating.remove(levelNumber);
+    pregenerateBatch(levelNumber + 1, count: 5);
+    return level;
+  }
+
+  GameLevel _generateInternal(int levelNumber) {
+    final gridSize = _getGridSize(levelNumber);
+    return _generateLevelWithSeed(levelNumber, gridSize);
+  }
+
   static GameLevel _isolateGenerate(int levelNumber) {
     return LevelGenerator()._generateInternal(levelNumber);
   }
 
   GameLevel generateRandom({required int gridSize, required int seed}) {
-    final random = Random(seed);
-    return _generateLevelWithSeed(-1, gridSize, random);
+    return _generateLevelWithSeed(-1, gridSize, seedOverride: seed);
   }
 
   int _getGridSize(int level) {
@@ -61,11 +63,13 @@ class LevelGenerator {
     return 12;
   }
 
-  GameLevel _generateLevelWithSeed(int levelNumber, int gridSize, Random random) {
-    int attempts = 0;
-    while (attempts < 50) {
-      attempts++;
-      final fillDensity = 0.45 + (random.nextDouble() * 0.20);
+  GameLevel _generateLevelWithSeed(int levelNumber, int gridSize, {int? seedOverride}) {
+    int seedOffset = 0;
+    while (true) {
+      final seed = seedOverride ?? ((levelNumber * 31337 + seedOffset * 7919) & 0x7FFFFFFF);
+      seedOffset++;
+      final random = Random(seed);
+      final fillDensity = 0.40 + (random.nextDouble() * 0.25);
       final grid = List.generate(
         gridSize,
         (_) => List.generate(gridSize, (_) => random.nextDouble() < fillDensity),
@@ -88,7 +92,7 @@ class LevelGenerator {
         }
       }
 
-      if (valid && (gridSize <= 7 ? _hasUniqueSolutionFast(gridSize, rowClues, colClues) : true)) {
+      if (valid && _countSolutions(gridSize, rowClues, colClues) == 1) {
         return GameLevel(
           levelNumber: levelNumber,
           gridSize: gridSize,
@@ -98,19 +102,6 @@ class LevelGenerator {
         );
       }
     }
-
-    // High-contrast structured fallback grid guaranteed to generate smooth, clean, valid clues
-    final fallbackGrid = List.generate(
-      gridSize,
-      (r) => List.generate(gridSize, (c) => (r % 2 == 0) ? (c % 2 == 0) : (c % 2 != 0)),
-    );
-    return GameLevel(
-      levelNumber: levelNumber,
-      gridSize: gridSize,
-      solutionGrid: fallbackGrid,
-      rowClues: _computeRowClues(fallbackGrid, gridSize),
-      colClues: _computeColClues(fallbackGrid, gridSize),
-    );
   }
 
   static List<List<int>> _computeRowClues(List<List<bool>> grid, int size) {
@@ -151,97 +142,115 @@ class LevelGenerator {
     return clues;
   }
 
-  /// Fast depth-limited solver for small grids (<= 7x7) to prevent UI thread freezing
-  bool _hasUniqueSolutionFast(
+  int _countSolutions(
     int size,
     List<List<int>> rowClues,
     List<List<int>> colClues,
   ) {
-    int solutionCount = 0;
-    int steps = 0;
-    const maxSteps = 1000;
-    final currentGrid = List.generate(size, (_) => List<bool>.filled(size, false));
+    int solutionsFound = 0;
 
-    void solve(int cellIndex) {
-      if (solutionCount >= 2 || steps > maxSteps) return;
-      steps++;
+    final rowPossibilities = <List<List<bool>>>[];
+    for (int r = 0; r < size; r++) {
+      rowPossibilities.add(_generateLinePossibilities(size, rowClues[r]));
+    }
 
-      if (cellIndex == size * size) {
-        if (_matchesColClues(currentGrid, size, colClues)) {
-          solutionCount++;
+    final colPossibilities = <List<List<bool>>>[];
+    for (int c = 0; c < size; c++) {
+      colPossibilities.add(_generateLinePossibilities(size, colClues[c]));
+    }
+
+    void solveRow(int rowIndex, List<List<bool>> currentGrid) {
+      if (solutionsFound >= 2) return;
+
+      if (rowIndex == size) {
+        for (int c = 0; c < size; c++) {
+          final colList = List<bool>.generate(size, (r) => currentGrid[r][c]);
+          if (!_lineMatchesPossibilities(colList, colPossibilities[c])) {
+            return;
+          }
         }
+        solutionsFound++;
         return;
       }
 
-      final r = cellIndex ~/ size;
-      final c = cellIndex % size;
-
-      currentGrid[r][c] = false;
-      if (c == size - 1) {
-        if (_rowMatchesClue(currentGrid[r], rowClues[r])) {
-          solve(cellIndex + 1);
+      for (final candidateRow in rowPossibilities[rowIndex]) {
+        bool candidateValid = true;
+        for (int c = 0; c < size; c++) {
+          final val = candidateRow[c];
+          bool possibleInCol = false;
+          for (final candidateCol in colPossibilities[c]) {
+            if (candidateCol[rowIndex] == val) {
+              possibleInCol = true;
+              break;
+            }
+          }
+          if (!possibleInCol) {
+            candidateValid = false;
+            break;
+          }
         }
-      } else {
-        solve(cellIndex + 1);
+
+        if (!candidateValid) continue;
+
+        currentGrid.add(candidateRow);
+        solveRow(rowIndex + 1, currentGrid);
+        currentGrid.removeLast();
+
+        if (solutionsFound >= 2) return;
       }
-
-      if (solutionCount >= 2 || steps > maxSteps) return;
-
-      currentGrid[r][c] = true;
-      if (c == size - 1) {
-        if (_rowMatchesClue(currentGrid[r], rowClues[r])) {
-          solve(cellIndex + 1);
-        }
-      } else {
-        solve(cellIndex + 1);
-      }
-
-      currentGrid[r][c] = false;
     }
 
-    solve(0);
-    return solutionCount == 1 && steps <= maxSteps;
+    solveRow(0, []);
+    return solutionsFound;
   }
 
-  bool _rowMatchesClue(List<bool> row, List<int> expectedClue) {
-    final clue = <int>[];
-    int count = 0;
-    for (final val in row) {
-      if (val) {
-        count++;
-      } else if (count > 0) {
-        clue.add(count);
-        count = 0;
-      }
+  static List<List<bool>> _generateLinePossibilities(int size, List<int> clues) {
+    final results = <List<bool>>[];
+    if (clues.isEmpty || (clues.length == 1 && clues[0] == 0)) {
+      results.add(List<bool>.filled(size, false));
+      return results;
     }
-    if (count > 0) clue.add(count);
-    final actual = clue.isEmpty ? [0] : clue;
-    if (actual.length != expectedClue.length) return false;
-    for (int i = 0; i < actual.length; i++) {
-      if (actual[i] != expectedClue[i]) return false;
-    }
-    return true;
-  }
 
-  bool _matchesColClues(List<List<bool>> grid, int size, List<List<int>> colClues) {
-    for (int c = 0; c < size; c++) {
-      final clue = <int>[];
-      int count = 0;
-      for (int r = 0; r < size; r++) {
-        if (grid[r][c]) {
-          count++;
-        } else if (count > 0) {
-          clue.add(count);
-          count = 0;
+    void build(int clueIdx, int currentPos, List<bool> line) {
+      if (clueIdx == clues.length) {
+        results.add(List<bool>.from(line));
+        return;
+      }
+
+      final blockLen = clues[clueIdx];
+      final remainingCluesSum = clues.sublist(clueIdx + 1).fold<int>(0, (a, b) => a + b);
+      final remainingGapCount = clues.length - 1 - clueIdx;
+      final maxStart = size - (remainingCluesSum + remainingGapCount) - blockLen;
+
+      for (int start = currentPos; start <= maxStart; start++) {
+        for (int i = start; i < start + blockLen; i++) {
+          line[i] = true;
+        }
+
+        final nextPos = start + blockLen + 1;
+        build(clueIdx + 1, nextPos, line);
+
+        for (int i = start; i < start + blockLen; i++) {
+          line[i] = false;
         }
       }
-      if (count > 0) clue.add(count);
-      final actual = clue.isEmpty ? [0] : clue;
-      if (actual.length != colClues[c].length) return false;
-      for (int i = 0; i < actual.length; i++) {
-        if (actual[i] != colClues[c][i]) return false;
-      }
     }
-    return true;
+
+    build(0, 0, List<bool>.filled(size, false));
+    return results;
+  }
+
+  bool _lineMatchesPossibilities(List<bool> line, List<List<bool>> possibilities) {
+    for (final p in possibilities) {
+      bool same = true;
+      for (int i = 0; i < line.length; i++) {
+        if (line[i] != p[i]) {
+          same = false;
+          break;
+        }
+      }
+      if (same) return true;
+    }
+    return false;
   }
 }
