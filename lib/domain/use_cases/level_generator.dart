@@ -6,11 +6,13 @@ class LevelGenerator {
   final Map<int, GameLevel> _cache = {};
   final Set<int> _generating = {};
 
-  LevelGenerator() {
-    pregenerateBatch(1, count: 100);
+  LevelGenerator({bool pregenerate = true}) {
+    if (pregenerate) {
+      pregenerateBatch(1, count: 3);
+    }
   }
 
-  void pregenerateBatch(int startLevel, {int count = 100}) {
+  void pregenerateBatch(int startLevel, {int count = 3}) {
     for (int i = 0; i < count; i++) {
       final levelNumber = startLevel + i;
       if (!_cache.containsKey(levelNumber) && !_generating.contains(levelNumber)) {
@@ -35,7 +37,7 @@ class LevelGenerator {
       level = _generateInternal(levelNumber);
     }
     _generating.remove(levelNumber);
-    pregenerateBatch(levelNumber + 1, count: 5);
+    pregenerateBatch(levelNumber + 1, count: 2);
     return level;
   }
 
@@ -45,7 +47,7 @@ class LevelGenerator {
   }
 
   static GameLevel _isolateGenerate(int levelNumber) {
-    return LevelGenerator()._generateInternal(levelNumber);
+    return LevelGenerator(pregenerate: false)._generateInternal(levelNumber);
   }
 
   GameLevel generateRandom({required int gridSize, required int seed}) {
