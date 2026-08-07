@@ -161,13 +161,129 @@ class LevelGenerator {
       colPossibilities.add(_generateLinePossibilities(size, colClues[c]));
     }
 
+    bool changed = true;
+    while (changed) {
+      changed = false;
+      for (int r = 0; r < size; r++) {
+        if (rowPossibilities[r].isEmpty) return 0;
+        for (int c = 0; c < size; c++) {
+          bool allTrue = true;
+          bool allFalse = true;
+          for (final rp in rowPossibilities[r]) {
+            if (rp[c]) {
+              allFalse = false;
+            } else {
+              allTrue = false;
+            }
+          }
+          if (allTrue || allFalse) {
+            final targetVal = allTrue;
+            final prevLen = colPossibilities[c].length;
+            colPossibilities[c].removeWhere((cp) => cp[r] != targetVal);
+            if (colPossibilities[c].length < prevLen) {
+              changed = true;
+              if (colPossibilities[c].isEmpty) return 0;
+            }
+          }
+        }
+      }
+      for (int c = 0; c < size; c++) {
+        if (colPossibilities[c].isEmpty) return 0;
+        for (int r = 0; r < size; r++) {
+          bool allTrue = true;
+          bool allFalse = true;
+          for (final cp in colPossibilities[c]) {
+            if (cp[r]) {
+              allFalse = false;
+            } else {
+              allTrue = false;
+            }
+          }
+          if (allTrue || allFalse) {
+            final targetVal = allTrue;
+            final prevLen = rowPossibilities[r].length;
+            rowPossibilities[r].removeWhere((rp) => rp[c] != targetVal);
+            if (rowPossibilities[r].length < prevLen) {
+              changed = true;
+              if (rowPossibilities[r].isEmpty) return 0;
+            }
+          }
+        }
+      }
+    }
+
+    bool allSingle = true;
+    for (int r = 0; r < size; r++) {
+      if (rowPossibilities[r].length != 1) {
+        allSingle = false;
+        break;
+      }
+    }
+    if (allSingle) {
+      for (int c = 0; c < size; c++) {
+        if (colPossibilities[c].length != 1) {
+          allSingle = false;
+          break;
+        }
+      }
+    }
+    if (allSingle) return 1;
+
+    final colPossibilitiesInts = List<Set<int>>.generate(
+      size,
+      (c) {
+        final set = <int>{};
+        for (final p in colPossibilities[c]) {
+          int val = 0;
+          for (int i = 0; i < size; i++) {
+            if (p[i]) {
+              val |= (1 << i);
+            }
+          }
+          set.add(val);
+        }
+        return set;
+      },
+    );
+
+    final colHasTrue = List<List<bool>>.generate(
+      size,
+      (c) => List<bool>.generate(
+        size,
+        (r) {
+          for (final p in colPossibilities[c]) {
+            if (p[r]) return true;
+          }
+          return false;
+        },
+      ),
+    );
+
+    final colHasFalse = List<List<bool>>.generate(
+      size,
+      (c) => List<bool>.generate(
+        size,
+        (r) {
+          for (final p in colPossibilities[c]) {
+            if (!p[r]) return true;
+          }
+          return false;
+        },
+      ),
+    );
+
     void solveRow(int rowIndex, List<List<bool>> currentGrid) {
       if (solutionsFound >= 2) return;
 
       if (rowIndex == size) {
         for (int c = 0; c < size; c++) {
-          final colList = List<bool>.generate(size, (r) => currentGrid[r][c]);
-          if (!_lineMatchesPossibilities(colList, colPossibilities[c])) {
+          int colVal = 0;
+          for (int r = 0; r < size; r++) {
+            if (currentGrid[r][c]) {
+              colVal |= (1 << r);
+            }
+          }
+          if (!colPossibilitiesInts[c].contains(colVal)) {
             return;
           }
         }
@@ -179,16 +295,16 @@ class LevelGenerator {
         bool candidateValid = true;
         for (int c = 0; c < size; c++) {
           final val = candidateRow[c];
-          bool possibleInCol = false;
-          for (final candidateCol in colPossibilities[c]) {
-            if (candidateCol[rowIndex] == val) {
-              possibleInCol = true;
+          if (val) {
+            if (!colHasTrue[c][rowIndex]) {
+              candidateValid = false;
               break;
             }
-          }
-          if (!possibleInCol) {
-            candidateValid = false;
-            break;
+          } else {
+            if (!colHasFalse[c][rowIndex]) {
+              candidateValid = false;
+              break;
+            }
           }
         }
 

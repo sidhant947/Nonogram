@@ -353,6 +353,8 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
                       diffButton('Easy', 'Easy'),
                       diffButton('Medium', 'Medium', isSecondary: true),
                       diffButton('Hard', 'Hard', isSecondary: true),
+                      diffButton('Master', 'Master', isSecondary: true),
+                      diffButton('Expert', 'Expert', isSecondary: true),
                     ],
                   );
                 },
