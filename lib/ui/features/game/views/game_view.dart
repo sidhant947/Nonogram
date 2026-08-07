@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/tangible_button.dart';
@@ -63,7 +64,10 @@ class _GameViewState extends ConsumerState<GameView> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.headingDark),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.headingDark,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -110,7 +114,10 @@ class _GameViewState extends ConsumerState<GameView> {
                             clipBehavior: Clip.none,
                             child: Center(
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                  vertical: 8.0,
+                                ),
                                 child: _buildNonogramGrid(context, state, vm),
                               ),
                             ),
@@ -146,13 +153,20 @@ class _GameViewState extends ConsumerState<GameView> {
                         children: [
                           // Timer and Move Count header
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 8,
+                            ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(Icons.timer_outlined, color: AppColors.subtext, size: 18),
+                                    const Icon(
+                                      Icons.timer_outlined,
+                                      color: AppColors.subtext,
+                                      size: 18,
+                                    ),
                                     const SizedBox(width: 6),
                                     Text(
                                       _formatTime(state.elapsedSeconds),
@@ -166,7 +180,11 @@ class _GameViewState extends ConsumerState<GameView> {
                                 ),
                                 Row(
                                   children: [
-                                    const Icon(Icons.touch_app_outlined, color: AppColors.subtext, size: 18),
+                                    const Icon(
+                                      Icons.touch_app_outlined,
+                                      color: AppColors.subtext,
+                                      size: 18,
+                                    ),
                                     const SizedBox(width: 6),
                                     Text(
                                       'MOVES: ${state.moveCount}',
@@ -184,20 +202,27 @@ class _GameViewState extends ConsumerState<GameView> {
 
                           // Action Row: Undo, Hint, Restart
                           Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 4,
+                            ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 _buildActionButton(
                                   icon: Icons.undo_rounded,
                                   label: 'UNDO',
-                                  onPressed: state.canUndo && !state.isComplete ? vm.undo : null,
+                                  onPressed: state.canUndo && !state.isComplete
+                                      ? vm.undo
+                                      : null,
                                 ),
                                 _buildActionButton(
                                   icon: Icons.lightbulb_outline_rounded,
                                   label: 'HINT',
                                   iconColor: AppColors.gold,
-                                  onPressed: state.isComplete ? null : vm.requestHint,
+                                  onPressed: state.isComplete
+                                      ? null
+                                      : vm.requestHint,
                                 ),
                                 _buildActionButton(
                                   icon: Icons.refresh_rounded,
@@ -272,10 +297,7 @@ class _GameViewState extends ConsumerState<GameView> {
           decoration: BoxDecoration(
             color: AppColors.bg,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: AppColors.border,
-              width: 1.5,
-            ),
+            border: Border.all(color: AppColors.border, width: 1.5),
           ),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -306,10 +328,7 @@ class _GameViewState extends ConsumerState<GameView> {
                   decoration: BoxDecoration(
                     color: AppColors.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.border,
-                      width: 1.0,
-                    ),
+                    border: Border.all(color: AppColors.border, width: 1.0),
                   ),
                   child: SizedBox(
                     width: 120,
@@ -328,7 +347,9 @@ class _GameViewState extends ConsumerState<GameView> {
                         final isFilled = state.level!.solutionGrid[r][c];
                         return Container(
                           decoration: BoxDecoration(
-                            color: isFilled ? AppColors.accent : Colors.transparent,
+                            color: isFilled
+                                ? AppColors.accent
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(2),
                           ),
                         );
@@ -352,7 +373,8 @@ class _GameViewState extends ConsumerState<GameView> {
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => GameView(levelNumber: widget.levelNumber + 1),
+                        builder: (context) =>
+                            GameView(levelNumber: widget.levelNumber + 1),
                       ),
                     );
                   }
@@ -368,7 +390,10 @@ class _GameViewState extends ConsumerState<GameView> {
                 icon: Icons.coffee_rounded,
                 onPressed: () async {
                   final Uri url = Uri.parse('https://ko-fi.com/sidhant947');
-                  if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                  if (!await launchUrl(
+                    url,
+                    mode: LaunchMode.externalApplication,
+                  )) {
                     throw Exception('Could not launch $url');
                   }
                 },
@@ -417,7 +442,9 @@ class _GameViewState extends ConsumerState<GameView> {
             Icon(
               icon,
               size: 18,
-              color: isDisabled ? AppColors.subtext.withOpacity(0.4) : (iconColor ?? AppColors.headingDark),
+              color: isDisabled
+                  ? AppColors.subtext.withValues(alpha: 0.4)
+                  : (iconColor ?? AppColors.headingDark),
             ),
             const SizedBox(width: 6),
             Text(
@@ -425,7 +452,9 @@ class _GameViewState extends ConsumerState<GameView> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w900,
-                color: isDisabled ? AppColors.subtext.withOpacity(0.4) : AppColors.headingDark,
+                color: isDisabled
+                    ? AppColors.subtext.withValues(alpha: 0.4)
+                    : AppColors.headingDark,
                 letterSpacing: 0.8,
               ),
             ),
@@ -443,10 +472,15 @@ class _GameViewState extends ConsumerState<GameView> {
   }) {
     final isSelected = _currentDrawMode == mode;
     return GestureDetector(
-      onTap: () => setState(() => _currentDrawMode = mode),
+      onTap: () {
+        if (ref.read(progressRepositoryProvider).hapticsEnabled) {
+          HapticFeedback.lightImpact();
+        }
+        setState(() => _currentDrawMode = mode);
+      },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
         decoration: BoxDecoration(
           color: isSelected ? color : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -455,23 +489,37 @@ class _GameViewState extends ConsumerState<GameView> {
             width: 2,
           ),
           boxShadow: isSelected
-              ? [BoxShadow(color: color.withOpacity(0.4), blurRadius: 10, spreadRadius: 2)]
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.4),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ]
               : [],
         ),
         child: Row(
           children: [
             Icon(
               icon,
-              color: isSelected ? (color == Colors.white || color == AppColors.accent ? Colors.black : Colors.white) : color,
-              size: 20,
+              color: isSelected
+                  ? (color == Colors.white || color == AppColors.accent
+                        ? Colors.black
+                        : Colors.white)
+                  : color,
+              size: 24,
             ),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
                 fontWeight: FontWeight.w900,
-                fontSize: 14,
-                color: isSelected ? (color == Colors.white || color == AppColors.accent ? Colors.black : Colors.white) : AppColors.headingDark,
+                fontSize: 16,
+                color: isSelected
+                    ? (color == Colors.white || color == AppColors.accent
+                          ? Colors.black
+                          : Colors.white)
+                    : AppColors.headingDark,
                 letterSpacing: 0.8,
               ),
             ),
@@ -489,8 +537,12 @@ class _GameViewState extends ConsumerState<GameView> {
     final level = state.level!;
     final size = level.gridSize;
 
-    final maxColClueLen = level.colClues.map((c) => c.length).fold(1, (a, b) => a > b ? a : b);
-    final maxRowClueLen = level.rowClues.map((r) => r.length).fold(1, (a, b) => a > b ? a : b);
+    final maxColClueLen = level.colClues
+        .map((c) => c.length)
+        .fold(1, (a, b) => a > b ? a : b);
+    final maxRowClueLen = level.rowClues
+        .map((r) => r.length)
+        .fold(1, (a, b) => a > b ? a : b);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -501,19 +553,28 @@ class _GameViewState extends ConsumerState<GameView> {
         final double maxClueWidthRatio = 0.28;
         final double maxClueHeightRatio = 0.25;
 
-        final estimatedCellSizeWidth = (availWidth * (1.0 - maxClueWidthRatio)) / size;
-        final estimatedCellSizeHeight = (availHeight * (1.0 - maxClueHeightRatio)) / (size + 1);
+        final estimatedCellSizeWidth =
+            (availWidth * (1.0 - maxClueWidthRatio)) / size;
+        final estimatedCellSizeHeight =
+            (availHeight * (1.0 - maxClueHeightRatio)) / (size + 1);
 
-        double cellSize = (estimatedCellSizeWidth < estimatedCellSizeHeight
-                ? estimatedCellSizeWidth
-                : estimatedCellSizeHeight)
-            .floorToDouble();
+        double cellSize =
+            (estimatedCellSizeWidth < estimatedCellSizeHeight
+                    ? estimatedCellSizeWidth
+                    : estimatedCellSizeHeight)
+                .floorToDouble();
 
         cellSize = cellSize.clamp(24.0, 68.0);
 
         final fontSize = (cellSize * 0.42).clamp(11.0, 18.0);
-        final rowClueWidth = (maxRowClueLen * (fontSize * 0.9)).clamp(cellSize * 1.2, availWidth * maxClueWidthRatio);
-        final clueHeight = (maxColClueLen * (fontSize * 1.15)).clamp(cellSize * 1.2, availHeight * maxClueHeightRatio);
+        final rowClueWidth = (maxRowClueLen * (fontSize * 0.9)).clamp(
+          cellSize * 1.2,
+          availWidth * maxClueWidthRatio,
+        );
+        final clueHeight = (maxColClueLen * (fontSize * 1.15)).clamp(
+          cellSize * 1.2,
+          availHeight * maxClueHeightRatio,
+        );
 
         return FittedBox(
           fit: BoxFit.contain,
@@ -539,14 +600,16 @@ class _GameViewState extends ConsumerState<GameView> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: level.colClues[c]
-                              .map((val) => Text(
-                                    '$val',
-                                    style: TextStyle(
-                                      fontSize: fontSize,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.subtext,
-                                    ),
-                                  ))
+                              .map(
+                                (val) => Text(
+                                  '$val',
+                                  style: TextStyle(
+                                    fontSize: fontSize,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.subtext,
+                                  ),
+                                ),
+                              )
                               .toList(),
                         ),
                       ),
@@ -569,19 +632,23 @@ class _GameViewState extends ConsumerState<GameView> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: level.rowClues[r]
-                              .map((val) => Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                                    child: Text(
-                                      '$val',
-                                      style: TextStyle(
-                                        fontSize: fontSize,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.headingDark,
-                                      ),
+                              .map(
+                                (val) => Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 2.0,
+                                  ),
+                                  child: Text(
+                                    '$val',
+                                    style: TextStyle(
+                                      fontSize: fontSize,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.headingDark,
                                     ),
-                                  ))
+                                  ),
+                                ),
+                              )
                               .toList(),
-                          ),
+                        ),
                       ),
                     ),
 
@@ -601,7 +668,9 @@ class _GameViewState extends ConsumerState<GameView> {
                           margin: const EdgeInsets.all(1.0),
                           decoration: BoxDecoration(
                             color: _getCellColor(r, c, state),
-                            borderRadius: BorderRadius.circular(size > 8 ? 4 : 6),
+                            borderRadius: BorderRadius.circular(
+                              size > 8 ? 4 : 6,
+                            ),
                             border: Border.all(
                               color: state.hintCell == (r * size + c)
                                   ? AppColors.gold

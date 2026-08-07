@@ -13,6 +13,7 @@ class UserProgress {
     this.savedBoard,
     this.savedMoveCount = 0,
     this.savedElapsedSeconds = 0,
+    this.hapticsEnabled = true,
   });
 
   final int currentLevel;
@@ -26,6 +27,7 @@ class UserProgress {
   final List<List<int>>? savedBoard; // CellState indices
   final int savedMoveCount;
   final int savedElapsedSeconds;
+  final bool hapticsEnabled;
 
   UserProgress copyWith({
     int? currentLevel,
@@ -37,6 +39,7 @@ class UserProgress {
     List<List<int>>? savedBoard,
     int? savedMoveCount,
     int? savedElapsedSeconds,
+    bool? hapticsEnabled,
   }) {
     return UserProgress(
       currentLevel: currentLevel ?? this.currentLevel,
@@ -49,6 +52,7 @@ class UserProgress {
       savedBoard: savedBoard ?? this.savedBoard,
       savedMoveCount: savedMoveCount ?? this.savedMoveCount,
       savedElapsedSeconds: savedElapsedSeconds ?? this.savedElapsedSeconds,
+      hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
     );
   }
 
@@ -104,6 +108,7 @@ class UserProgress {
       savedBoard: null,
       savedMoveCount: 0,
       savedElapsedSeconds: 0,
+      hapticsEnabled: hapticsEnabled,
     );
   }
 }

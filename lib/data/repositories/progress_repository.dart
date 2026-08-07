@@ -8,6 +8,10 @@ class ProgressRepository extends ChangeNotifier {
   final HiveService _hiveService;
   UserProgress? _cachedProgress;
 
+  UserProgress? get cachedProgress => _cachedProgress;
+
+  bool get hapticsEnabled => _cachedProgress?.hapticsEnabled ?? true;
+
   Future<UserProgress> getProgress() async {
     if (_cachedProgress != null) return _cachedProgress!;
     _cachedProgress = await _hiveService.getProgress();
@@ -18,6 +22,11 @@ class ProgressRepository extends ChangeNotifier {
     _cachedProgress = progress;
     await _hiveService.saveProgress(progress);
     notifyListeners();
+  }
+
+  Future<void> toggleHaptics() async {
+    final current = await getProgress();
+    await saveProgress(current.copyWith(hapticsEnabled: !current.hapticsEnabled));
   }
 
   Future<void> completeLevel(int levelNumber, int moves) async {

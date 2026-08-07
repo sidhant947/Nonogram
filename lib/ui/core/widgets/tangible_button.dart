@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_colors.dart';
+import '../../providers.dart';
 
-class TangibleButton extends StatefulWidget {
+class TangibleButton extends ConsumerStatefulWidget {
   const TangibleButton({
     super.key,
     required this.text,
@@ -17,10 +19,10 @@ class TangibleButton extends StatefulWidget {
   final IconData? icon;
 
   @override
-  State<TangibleButton> createState() => _TangibleButtonState();
+  ConsumerState<TangibleButton> createState() => _TangibleButtonState();
 }
 
-class _TangibleButtonState extends State<TangibleButton> {
+class _TangibleButtonState extends ConsumerState<TangibleButton> {
   bool _isPressed = false;
 
   @override
@@ -37,7 +39,10 @@ class _TangibleButtonState extends State<TangibleButton> {
       onTap: isDisabled
           ? null
           : () {
-              HapticFeedback.lightImpact();
+              final hapticsEnabled = ref.read(progressRepositoryProvider).hapticsEnabled;
+              if (hapticsEnabled) {
+                HapticFeedback.lightImpact();
+              }
               widget.onPressed!();
             },
       child: AnimatedContainer(

@@ -121,6 +121,12 @@ class GameViewModel extends StateNotifier<GameViewModelState> {
     _timer = null;
   }
 
+  void _triggerHaptic(Future<void> Function() hapticAction) {
+    if (progressRepository.hapticsEnabled) {
+      hapticAction();
+    }
+  }
+
   List<List<CellState>> _emptyBoard(int n) =>
       List.generate(n, (_) => List<CellState>.filled(n, CellState.empty));
 
@@ -235,13 +241,13 @@ class GameViewModel extends StateNotifier<GameViewModelState> {
     if (current == CellState.empty) {
       next = CellState.filled;
       movesDelta = 1;
-      HapticFeedback.mediumImpact();
+      _triggerHaptic(HapticFeedback.mediumImpact);
     } else if (current == CellState.filled) {
       next = CellState.cross;
-      HapticFeedback.lightImpact();
+      _triggerHaptic(HapticFeedback.lightImpact);
     } else {
       next = CellState.empty;
-      HapticFeedback.lightImpact();
+      _triggerHaptic(HapticFeedback.lightImpact);
     }
 
     newBoard[r][c] = next;
@@ -250,7 +256,7 @@ class GameViewModel extends StateNotifier<GameViewModelState> {
     final isComplete = NonogramRules.isComplete(newBoard, level);
 
     if (isComplete) {
-      HapticFeedback.heavyImpact();
+      _triggerHaptic(HapticFeedback.heavyImpact);
       _stopTimer();
     }
 
@@ -287,10 +293,10 @@ class GameViewModel extends StateNotifier<GameViewModelState> {
     final isComplete = NonogramRules.isComplete(newBoard, level);
 
     if (isComplete) {
-      HapticFeedback.heavyImpact();
+      _triggerHaptic(HapticFeedback.heavyImpact);
       _stopTimer();
     } else {
-      HapticFeedback.selectionClick();
+      _triggerHaptic(HapticFeedback.selectionClick);
     }
 
     state = state.copyWith(
@@ -319,7 +325,7 @@ class GameViewModel extends StateNotifier<GameViewModelState> {
     if (_undoStack.isEmpty || state.level == null || state.isComplete) return;
     final snapshot = _undoStack.removeLast();
     final conflicts = NonogramRules.computeConflicts(snapshot.board, state.level!);
-    HapticFeedback.lightImpact();
+    _triggerHaptic(HapticFeedback.lightImpact);
     state = state.copyWith(
       board: snapshot.board,
       conflicts: conflicts,
@@ -336,7 +342,7 @@ class GameViewModel extends StateNotifier<GameViewModelState> {
     final hint = NonogramRules.suggestHint(state.board, level);
     if (hint == null) return;
     final encoded = hint[0] * level.gridSize + hint[1];
-    HapticFeedback.selectionClick();
+    _triggerHaptic(HapticFeedback.selectionClick);
     state = state.copyWith(hintCell: encoded);
 
     _hintTimer?.cancel();

@@ -112,6 +112,41 @@ class SettingsView extends ConsumerWidget {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.border,
+                      width: 1.0,
+                    ),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                    title: const Text(
+                      'Haptic Feedback',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.headingDark,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    trailing: Switch(
+                      value: ref.watch(progressRepositoryProvider).hapticsEnabled,
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: Colors.grey[700],
+                      inactiveThumbColor: AppColors.subtext,
+                      inactiveTrackColor: AppColors.bg,
+                      onChanged: (val) {
+                        ref.read(progressRepositoryProvider).toggleHaptics();
+                      },
+                    ),
+                  ),
+                ),
+              ),
               TangibleButton(
                 text: 'Reset Progress',
                 isSecondary: true,

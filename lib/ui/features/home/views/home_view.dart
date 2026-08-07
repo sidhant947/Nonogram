@@ -59,7 +59,9 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
   }) {
     return GestureDetector(
       onTap: () {
-        HapticFeedback.lightImpact();
+        if (ref.read(progressRepositoryProvider).hapticsEnabled) {
+          HapticFeedback.lightImpact();
+        }
         onTap();
       },
       child: Container(
