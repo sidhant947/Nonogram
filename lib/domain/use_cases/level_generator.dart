@@ -68,7 +68,9 @@ class LevelGenerator {
   GameLevel _generateLevelWithSeed(int levelNumber, int gridSize, {int? seedOverride}) {
     int seedOffset = 0;
     while (true) {
-      final seed = seedOverride ?? ((levelNumber * 31337 + seedOffset * 7919) & 0x7FFFFFFF);
+      final seed = seedOverride != null
+          ? (seedOverride + seedOffset) & 0x7FFFFFFF
+          : ((levelNumber * 31337 + seedOffset * 7919) & 0x7FFFFFFF);
       seedOffset++;
       final random = Random(seed);
       final fillDensity = 0.40 + (random.nextDouble() * 0.25);

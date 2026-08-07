@@ -185,9 +185,9 @@ class GameViewModel extends StateNotifier<GameViewModelState> {
       } else if (difficulty == 'Hard') {
         gridSize = 8;
       } else if (difficulty == 'Expert') {
-        gridSize = 10;
-      } else if (difficulty == 'Master') {
         gridSize = 12;
+      } else if (difficulty == 'Master') {
+        gridSize = 10;
       }
 
       final level = levelGenerator.generateRandom(
