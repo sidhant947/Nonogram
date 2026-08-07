@@ -281,12 +281,6 @@ class _GameViewState extends ConsumerState<GameView> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.emoji_events_rounded,
-                color: AppColors.gold,
-                size: 56,
-              ),
-              const SizedBox(height: 12),
               const Text(
                 'LEVEL COMPLETED!',
                 style: TextStyle(
@@ -305,7 +299,45 @@ class _GameViewState extends ConsumerState<GameView> {
                   color: AppColors.subtext,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+              if (state.level != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.border,
+                      width: 1.0,
+                    ),
+                  ),
+                  child: SizedBox(
+                    width: 120,
+                    height: 120,
+                    child: GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: state.level!.gridSize,
+                        crossAxisSpacing: 2.0,
+                        mainAxisSpacing: 2.0,
+                      ),
+                      itemCount: state.level!.gridSize * state.level!.gridSize,
+                      itemBuilder: (context, index) {
+                        final r = index ~/ state.level!.gridSize;
+                        final c = index % state.level!.gridSize;
+                        final isFilled = state.level!.solutionGrid[r][c];
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: isFilled ? AppColors.accent : Colors.transparent,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
 
               // 1. Next Level Button
               TangibleButton(
