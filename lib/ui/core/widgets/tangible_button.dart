@@ -51,7 +51,7 @@ class _TangibleButtonState extends ConsumerState<TangibleButton> {
         width: double.infinity,
         transform: Matrix4.translationValues(0, _isPressed ? 4 : 0, 0),
         decoration: BoxDecoration(
-          color: isDisabled ? bgColor.withOpacity(0.4) : bgColor,
+          color: isDisabled ? bgColor.withValues(alpha: 0.4) : bgColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: _isPressed || isDisabled
               ? []

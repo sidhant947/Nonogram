@@ -12,7 +12,7 @@ final hiveServiceProvider = Provider<HiveService>((ref) {
 
 final progressRepositoryProvider = ChangeNotifierProvider<ProgressRepository>((ref) {
   final hiveService = ref.watch(hiveServiceProvider);
-  return ProgressRepository(hiveService: hiveService);
+  return ProgressRepository(hiveService);
 });
 
 final levelGeneratorProvider = Provider<LevelGenerator>((ref) {

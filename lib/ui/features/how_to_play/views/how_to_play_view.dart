@@ -11,7 +11,7 @@ class HowToPlayView extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'HOW TO PLAY',
           style: TextStyle(
             fontSize: 22,
@@ -21,7 +21,7 @@ class HowToPlayView extends StatelessWidget {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.headingDark),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.headingDark),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -85,7 +85,7 @@ class HowToPlayView extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.accent.withOpacity(0.15),
+              color: AppColors.accent.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: AppColors.accent, size: 24),
@@ -97,7 +97,7 @@ class HowToPlayView extends StatelessWidget {
               children: [
                 Text(
                   '$number. $title',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.headingDark,
@@ -107,7 +107,7 @@ class HowToPlayView extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   description,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     color: AppColors.subtext,
                     height: 1.4,

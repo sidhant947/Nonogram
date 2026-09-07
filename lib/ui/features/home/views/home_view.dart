@@ -5,10 +5,10 @@ import 'package:flutter/services.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/tangible_button.dart';
-import '../../../core/widgets/nonogram_icon_widget.dart';
 import '../../game/views/game_view.dart';
 import '../../how_to_play/views/how_to_play_view.dart';
 import '../../level_select/views/level_select_view.dart';
+import '../../multiplayer/views/multiplayer_view.dart';
 import '../../settings/views/settings_view.dart';
 import '../../../providers.dart';
 
@@ -19,29 +19,11 @@ class HomeView extends ConsumerStatefulWidget {
   ConsumerState<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderStateMixin {
-  late AnimationController _glowController;
-  late Animation<double> _glowAnimation;
-
+class _HomeViewState extends ConsumerState<HomeView> {
   @override
   void initState() {
     super.initState();
     Future.microtask(() => ref.read(homeViewModelProvider.notifier).loadProgress());
-
-    _glowController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-
-    _glowAnimation = Tween<double>(begin: 8.0, end: 20.0).animate(
-      CurvedAnimation(parent: _glowController, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _glowController.dispose();
-    super.dispose();
   }
 
   Future<void> _launchUrl(String urlString) async {
@@ -116,7 +98,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
                       ),
                       child: Text(
                         'LEVEL ${state.progress!.currentLevel}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w900,
                           color: AppColors.headingDark,
@@ -135,52 +117,8 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
               ),
               const Spacer(flex: 3),
 
-              // Tactile 3D Icon Container
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.white24,
-                    width: 1.0,
-                  ),
-                ),
-                alignment: Alignment.center,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    AnimatedBuilder(
-                      animation: _glowAnimation,
-                      builder: (context, child) {
-                        return Container(
-                          width: 56,
-                          height: 56,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.accent.withOpacity(0.35),
-                                blurRadius: _glowAnimation.value,
-                                spreadRadius: _glowAnimation.value / 2,
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                    const NonogramIconWidget(
-                      color: AppColors.accent,
-                      size: 56,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 28),
-
               // Game Title
-              const Text(
+              Text(
                 'NONOGRAM',
                 style: TextStyle(
                   fontSize: 48,
@@ -190,7 +128,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'PICTURE LOGIC PUZZLE',
                 style: TextStyle(
                   fontSize: 14,
@@ -247,6 +185,20 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
 
               const SizedBox(height: 16),
 
+              // Multiplayer Button
+              TangibleButton(
+                text: 'Multiplayer',
+                isSecondary: true,
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MultiplayerView(),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
               // How to Play Button
               TangibleButton(
                 text: 'How to Play',
@@ -298,7 +250,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const FittedBox(
+              FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
                   'CHOOSE DIFFICULTY',
@@ -311,7 +263,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
                 ),
               ),
               const SizedBox(height: 8),
-              const FittedBox(
+              FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
                   'Play a dynamically generated Nonogram puzzle.',
@@ -364,7 +316,7 @@ class _HomeViewState extends ConsumerState<HomeView> with SingleTickerProviderSt
               const SizedBox(height: 8),
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text(
+                child: Text(
                   'CANCEL',
                   style: TextStyle(
                     color: AppColors.subtext,

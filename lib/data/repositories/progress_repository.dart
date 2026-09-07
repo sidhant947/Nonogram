@@ -3,7 +3,7 @@ import '../../domain/models/user_progress.dart';
 import '../services/hive_service.dart';
 
 class ProgressRepository extends ChangeNotifier {
-  ProgressRepository({required HiveService hiveService}) : _hiveService = hiveService;
+  ProgressRepository(this._hiveService);
 
   final HiveService _hiveService;
   UserProgress? _cachedProgress;
@@ -13,6 +13,8 @@ class ProgressRepository extends ChangeNotifier {
   bool get hapticsEnabled => _cachedProgress?.hapticsEnabled ?? true;
 
   bool get longPressToCrossEnabled => _cachedProgress?.longPressToCrossEnabled ?? true;
+
+  bool get cycleModeEnabled => _cachedProgress?.cycleModeEnabled ?? false;
 
   Future<UserProgress> getProgress() async {
     if (_cachedProgress != null) return _cachedProgress!;
@@ -34,6 +36,11 @@ class ProgressRepository extends ChangeNotifier {
   Future<void> toggleLongPressToCross() async {
     final current = await getProgress();
     await saveProgress(current.copyWith(longPressToCrossEnabled: !current.longPressToCrossEnabled));
+  }
+
+  Future<void> toggleCycleMode() async {
+    final current = await getProgress();
+    await saveProgress(current.copyWith(cycleModeEnabled: !current.cycleModeEnabled));
   }
 
   Future<void> completeLevel(int levelNumber, int moves) async {

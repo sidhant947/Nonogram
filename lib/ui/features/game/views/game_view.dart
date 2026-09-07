@@ -14,11 +14,13 @@ class GameView extends ConsumerStatefulWidget {
     required this.levelNumber,
     this.isRandom = false,
     this.randomDifficulty,
+    this.randomSeed,
   });
 
   final int levelNumber;
   final bool isRandom;
   final String? randomDifficulty;
+  final int? randomSeed;
 
   @override
   ConsumerState<GameView> createState() => _GameViewState();
@@ -33,7 +35,10 @@ class _GameViewState extends ConsumerState<GameView> {
     Future.microtask(() {
       final vm = ref.read(gameViewModelProvider.notifier);
       if (widget.isRandom) {
-        vm.loadRandomLevel(widget.randomDifficulty ?? 'Easy');
+        vm.loadRandomLevel(
+          widget.randomDifficulty ?? 'Easy',
+          seed: widget.randomSeed,
+        );
       } else {
         vm.loadLevel(widget.levelNumber);
       }
@@ -64,7 +69,7 @@ class _GameViewState extends ConsumerState<GameView> {
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new_rounded,
             color: AppColors.headingDark,
           ),
@@ -72,7 +77,7 @@ class _GameViewState extends ConsumerState<GameView> {
         ),
         title: Text(
           widget.isRandom ? '' : 'LEVEL ${widget.levelNumber}',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w900,
             color: AppColors.headingDark,
@@ -82,7 +87,7 @@ class _GameViewState extends ConsumerState<GameView> {
       ),
       body: SafeArea(
         child: state.isLoading || state.level == null
-            ? const Center(
+            ? Center(
                 child: CircularProgressIndicator(color: AppColors.accent),
               )
             : Stack(
@@ -124,7 +129,11 @@ class _GameViewState extends ConsumerState<GameView> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 75), // Reserved bottom space
+                      SizedBox(
+                        height: ref.watch(progressRepositoryProvider).cycleModeEnabled
+                            ? 16
+                            : 75,
+                      ), // Reserved bottom space
                     ],
                   ),
 
@@ -162,7 +171,7 @@ class _GameViewState extends ConsumerState<GameView> {
                               children: [
                                 Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.timer_outlined,
                                       color: AppColors.subtext,
                                       size: 18,
@@ -170,7 +179,7 @@ class _GameViewState extends ConsumerState<GameView> {
                                     const SizedBox(width: 6),
                                     Text(
                                       _formatTime(state.elapsedSeconds),
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.subtext,
@@ -180,7 +189,7 @@ class _GameViewState extends ConsumerState<GameView> {
                                 ),
                                 Row(
                                   children: [
-                                    const Icon(
+                                    Icon(
                                       Icons.touch_app_outlined,
                                       color: AppColors.subtext,
                                       size: 18,
@@ -188,7 +197,7 @@ class _GameViewState extends ConsumerState<GameView> {
                                     const SizedBox(width: 6),
                                     Text(
                                       'MOVES: ${state.moveCount}',
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                         color: AppColors.subtext,
@@ -238,45 +247,46 @@ class _GameViewState extends ConsumerState<GameView> {
                   ),
 
                   // Layer 3: Bottom Controls with Ultra-Smooth Dissolve Gradient
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.bottomCenter,
-                          end: Alignment.topCenter,
-                          colors: [
-                            AppColors.bg,
-                            AppColors.bg.withValues(alpha: 0.95),
-                            AppColors.bg.withValues(alpha: 0.6),
-                            AppColors.bg.withValues(alpha: 0.0),
+                  if (!ref.watch(progressRepositoryProvider).cycleModeEnabled)
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.bottomCenter,
+                            end: Alignment.topCenter,
+                            colors: [
+                              AppColors.bg,
+                              AppColors.bg.withValues(alpha: 0.95),
+                              AppColors.bg.withValues(alpha: 0.6),
+                              AppColors.bg.withValues(alpha: 0.0),
+                            ],
+                            stops: const [0.0, 0.55, 0.8, 1.0],
+                          ),
+                        ),
+                        padding: const EdgeInsets.only(top: 24, bottom: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _buildModeButton(
+                              mode: CellState.filled,
+                              icon: Icons.square,
+                              label: 'FILL',
+                              color: AppColors.accent,
+                            ),
+                            const SizedBox(width: 24),
+                            _buildModeButton(
+                              mode: CellState.cross,
+                              icon: Icons.close_rounded,
+                              label: 'CROSS (X)',
+                              color: AppColors.cellCross,
+                            ),
                           ],
-                          stops: const [0.0, 0.55, 0.8, 1.0],
                         ),
                       ),
-                      padding: const EdgeInsets.only(top: 24, bottom: 16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _buildModeButton(
-                            mode: CellState.filled,
-                            icon: Icons.square,
-                            label: 'FILL',
-                            color: AppColors.accent,
-                          ),
-                          const SizedBox(width: 24),
-                          _buildModeButton(
-                            mode: CellState.cross,
-                            icon: Icons.close_rounded,
-                            label: 'CROSS (X)',
-                            color: AppColors.cellCross,
-                          ),
-                        ],
-                      ),
                     ),
-                  ),
                 ],
               ),
       ),
@@ -303,7 +313,7 @@ class _GameViewState extends ConsumerState<GameView> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'LEVEL COMPLETED!',
                 style: TextStyle(
                   fontSize: 24,
@@ -315,7 +325,7 @@ class _GameViewState extends ConsumerState<GameView> {
               const SizedBox(height: 8),
               Text(
                 'Moves: ${state.moveCount}  •  Time: ${_formatTime(state.elapsedSeconds)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                   color: AppColors.subtext,
@@ -655,13 +665,16 @@ class _GameViewState extends ConsumerState<GameView> {
                     for (int c = 0; c < size; c++)
                       GestureDetector(
                         onTap: () {
-                          if (state.board[r][c] == _currentDrawMode) {
+                          if (ref.read(progressRepositoryProvider).cycleModeEnabled) {
+                            vm.toggleCell(r, c);
+                          } else if (state.board[r][c] == _currentDrawMode) {
                             vm.setCellState(r, c, CellState.empty);
                           } else {
                             vm.setCellState(r, c, _currentDrawMode);
                           }
                         },
-                        onLongPress: ref.read(progressRepositoryProvider).longPressToCrossEnabled
+                        onLongPress: (!ref.read(progressRepositoryProvider).cycleModeEnabled &&
+                                ref.read(progressRepositoryProvider).longPressToCrossEnabled)
                             ? () {
                                 if (ref.read(progressRepositoryProvider).hapticsEnabled) {
                                   HapticFeedback.mediumImpact();

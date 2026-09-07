@@ -15,6 +15,7 @@ class UserProgress {
     this.savedElapsedSeconds = 0,
     this.hapticsEnabled = true,
     this.longPressToCrossEnabled = true,
+    this.cycleModeEnabled = false,
   });
 
   final int currentLevel;
@@ -30,6 +31,7 @@ class UserProgress {
   final int savedElapsedSeconds;
   final bool hapticsEnabled;
   final bool longPressToCrossEnabled;
+  final bool cycleModeEnabled;
 
   UserProgress copyWith({
     int? currentLevel,
@@ -43,6 +45,7 @@ class UserProgress {
     int? savedElapsedSeconds,
     bool? hapticsEnabled,
     bool? longPressToCrossEnabled,
+    bool? cycleModeEnabled,
   }) {
     return UserProgress(
       currentLevel: currentLevel ?? this.currentLevel,
@@ -58,6 +61,7 @@ class UserProgress {
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       longPressToCrossEnabled:
           longPressToCrossEnabled ?? this.longPressToCrossEnabled,
+      cycleModeEnabled: cycleModeEnabled ?? this.cycleModeEnabled,
     );
   }
 
@@ -115,6 +119,7 @@ class UserProgress {
       savedElapsedSeconds: 0,
       hapticsEnabled: hapticsEnabled,
       longPressToCrossEnabled: longPressToCrossEnabled,
+      cycleModeEnabled: cycleModeEnabled,
     );
   }
 }

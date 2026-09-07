@@ -367,18 +367,4 @@ class LevelGenerator {
     build(0, 0, List<bool>.filled(size, false));
     return results;
   }
-
-  bool _lineMatchesPossibilities(List<bool> line, List<List<bool>> possibilities) {
-    for (final p in possibilities) {
-      bool same = true;
-      for (int i = 0; i < line.length; i++) {
-        if (line[i] != p[i]) {
-          same = false;
-          break;
-        }
-      }
-      if (same) return true;
-    }
-    return false;
-  }
 }

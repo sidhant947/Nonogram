@@ -12,13 +12,14 @@ class LevelSelectView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeViewModelProvider);
     final highestCompleted = homeState.progress?.highestLevelCompleted ?? 0;
+    final highestUnlocked = highestCompleted + 1;
 
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'SELECT LEVEL',
           style: TextStyle(
             fontSize: 22,
@@ -28,7 +29,7 @@ class LevelSelectView extends ConsumerWidget {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.headingDark),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.headingDark),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -41,10 +42,10 @@ class LevelSelectView extends ConsumerWidget {
             mainAxisSpacing: 16,
             childAspectRatio: 1.0,
           ),
-          itemCount: 100,
+          itemCount: highestUnlocked + 10,
           itemBuilder: (context, index) {
             final levelNumber = index + 1;
-            final isUnlocked = levelNumber <= highestCompleted + 1;
+            final isUnlocked = levelNumber <= highestUnlocked;
             final isCompleted = levelNumber <= highestCompleted;
 
             return GestureDetector(
@@ -62,8 +63,8 @@ class LevelSelectView extends ConsumerWidget {
               child: Container(
                 decoration: BoxDecoration(
                   color: isCompleted
-                      ? AppColors.accent.withOpacity(0.2)
-                      : (isUnlocked ? AppColors.surface : AppColors.surface.withOpacity(0.4)),
+                      ? AppColors.accent.withValues(alpha: 0.2)
+                      : (isUnlocked ? AppColors.surface : AppColors.surface.withValues(alpha: 0.4)),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isCompleted
@@ -86,14 +87,14 @@ class LevelSelectView extends ConsumerWidget {
                             ),
                           ),
                           if (isCompleted)
-                            const Icon(
+                            Icon(
                               Icons.check_circle_rounded,
                               size: 14,
                               color: AppColors.accent,
                             ),
                         ],
                       )
-                    : const Icon(
+                    : Icon(
                         Icons.lock_rounded,
                         color: AppColors.subtext,
                         size: 20,

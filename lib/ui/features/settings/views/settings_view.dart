@@ -32,7 +32,7 @@ class SettingsView extends ConsumerWidget {
                 size: 48,
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'RESET PROGRESS?',
                 style: TextStyle(
                   fontSize: 20,
@@ -42,7 +42,7 @@ class SettingsView extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Are you sure you want to reset all your game progress? This action cannot be undone.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
@@ -70,7 +70,7 @@ class SettingsView extends ConsumerWidget {
               const SizedBox(height: 8),
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
-                child: const Text(
+                child: Text(
                   'CANCEL',
                   style: TextStyle(
                     color: AppColors.subtext,
@@ -93,7 +93,7 @@ class SettingsView extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'SETTINGS',
           style: TextStyle(
             fontSize: 22,
@@ -103,7 +103,7 @@ class SettingsView extends ConsumerWidget {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.headingDark),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.headingDark),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -127,7 +127,7 @@ class SettingsView extends ConsumerWidget {
                     children: [
                       ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                        title: const Text(
+                        title: Text(
                           'Haptic Feedback',
                           style: TextStyle(
                             fontSize: 16,
@@ -150,7 +150,7 @@ class SettingsView extends ConsumerWidget {
                       Divider(color: AppColors.border, height: 1),
                       ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                        title: const Text(
+                        title: Text(
                           'Long Press to Cross',
                           style: TextStyle(
                             fontSize: 16,
@@ -167,6 +167,29 @@ class SettingsView extends ConsumerWidget {
                           inactiveTrackColor: AppColors.bg,
                           onChanged: (val) {
                             ref.read(progressRepositoryProvider).toggleLongPressToCross();
+                          },
+                        ),
+                      ),
+                      Divider(color: AppColors.border, height: 1),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                        title: Text(
+                          'Cycle Mode',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.headingDark,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        trailing: Switch(
+                          value: ref.watch(progressRepositoryProvider).cycleModeEnabled,
+                          activeThumbColor: Colors.white,
+                          activeTrackColor: Colors.grey[700],
+                          inactiveThumbColor: AppColors.subtext,
+                          inactiveTrackColor: AppColors.bg,
+                          onChanged: (val) {
+                            ref.read(progressRepositoryProvider).toggleCycleMode();
                           },
                         ),
                       ),
