@@ -56,12 +56,6 @@ class _GameViewState extends ConsumerState<GameView> {
     final state = ref.watch(gameViewModelProvider);
     final vm = ref.read(gameViewModelProvider.notifier);
 
-    ref.listen<GameViewModelState>(gameViewModelProvider, (previous, next) {
-      if ((previous == null || !previous.isComplete) && next.isComplete) {
-        _showCompletionDialog(context, next, vm);
-      }
-    });
-
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(
@@ -84,6 +78,17 @@ class _GameViewState extends ConsumerState<GameView> {
             letterSpacing: 1.0,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.refresh_rounded,
+              color: AppColors.headingDark,
+            ),
+            tooltip: 'RESTART',
+            onPressed: vm.resetLevel,
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SafeArea(
         child: state.isLoading || state.level == null
@@ -92,10 +97,9 @@ class _GameViewState extends ConsumerState<GameView> {
               )
             : Stack(
                 children: [
-                  // Layer 1: Scalable Nonogram Board Area with Edge Dissolve Mask
                   Column(
                     children: [
-                      const SizedBox(height: 90), // Reserved top space
+                      const SizedBox(height: 90),
                       Expanded(
                         child: ShaderMask(
                           shaderCallback: (Rect bounds) {
@@ -130,14 +134,15 @@ class _GameViewState extends ConsumerState<GameView> {
                         ),
                       ),
                       SizedBox(
-                        height: ref.watch(progressRepositoryProvider).cycleModeEnabled
-                            ? 16
-                            : 75,
-                      ), // Reserved bottom space
+                        height: state.isComplete
+                            ? 210
+                            : (ref.watch(progressRepositoryProvider).cycleModeEnabled
+                                ? 16
+                                : 75),
+                      ),
                     ],
                   ),
 
-                  // Layer 2: Top Controls with Ultra-Smooth Dissolve Gradient
                   Positioned(
                     top: 0,
                     left: 0,
@@ -160,7 +165,6 @@ class _GameViewState extends ConsumerState<GameView> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Timer and Move Count header
                           Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,
@@ -209,7 +213,6 @@ class _GameViewState extends ConsumerState<GameView> {
                             ),
                           ),
 
-                          // Action Row: Undo, Hint, Restart
                           Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,
@@ -233,11 +236,6 @@ class _GameViewState extends ConsumerState<GameView> {
                                       ? null
                                       : vm.requestHint,
                                 ),
-                                _buildActionButton(
-                                  icon: Icons.refresh_rounded,
-                                  label: 'RESTART',
-                                  onPressed: vm.resetLevel,
-                                ),
                               ],
                             ),
                           ),
@@ -246,186 +244,171 @@ class _GameViewState extends ConsumerState<GameView> {
                     ),
                   ),
 
-                  // Layer 3: Bottom Controls with Ultra-Smooth Dissolve Gradient
-                  if (!ref.watch(progressRepositoryProvider).cycleModeEnabled)
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [
-                              AppColors.bg,
-                              AppColors.bg.withValues(alpha: 0.95),
-                              AppColors.bg.withValues(alpha: 0.6),
-                              AppColors.bg.withValues(alpha: 0.0),
-                            ],
-                            stops: const [0.0, 0.55, 0.8, 1.0],
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 350),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        return SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0, 1),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: FadeTransition(
+                            opacity: animation,
+                            child: child,
                           ),
-                        ),
-                        padding: const EdgeInsets.only(top: 24, bottom: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _buildModeButton(
-                              mode: CellState.filled,
-                              icon: Icons.square,
-                              label: 'FILL',
-                              color: AppColors.accent,
-                            ),
-                            const SizedBox(width: 24),
-                            _buildModeButton(
-                              mode: CellState.cross,
-                              icon: Icons.close_rounded,
-                              label: 'CROSS (X)',
-                              color: AppColors.cellCross,
-                            ),
-                          ],
-                        ),
-                      ),
+                        );
+                      },
+                      child: state.isComplete
+                          ? KeyedSubtree(
+                              key: const ValueKey('completion_panel'),
+                              child: _buildCompletionBottomPanel(
+                                context,
+                                state,
+                                vm,
+                              ),
+                            )
+                          : (!ref.watch(progressRepositoryProvider).cycleModeEnabled
+                              ? KeyedSubtree(
+                                  key: const ValueKey('mode_buttons'),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.bottomCenter,
+                                        end: Alignment.topCenter,
+                                        colors: [
+                                          AppColors.bg,
+                                          AppColors.bg.withValues(alpha: 0.95),
+                                          AppColors.bg.withValues(alpha: 0.6),
+                                          AppColors.bg.withValues(alpha: 0.0),
+                                        ],
+                                        stops: const [0.0, 0.55, 0.8, 1.0],
+                                      ),
+                                    ),
+                                    padding: const EdgeInsets.only(
+                                      top: 24,
+                                      bottom: 16,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        _buildModeButton(
+                                          mode: CellState.filled,
+                                          icon: Icons.square,
+                                          label: 'FILL',
+                                          color: AppColors.accent,
+                                        ),
+                                        const SizedBox(width: 24),
+                                        _buildModeButton(
+                                          mode: CellState.cross,
+                                          icon: Icons.close_rounded,
+                                          label: 'CROSS (X)',
+                                          color: AppColors.cellCross,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox.shrink(
+                                  key: ValueKey('empty_bottom'),
+                                )),
                     ),
+                  ),
                 ],
               ),
       ),
     );
   }
 
-  void _showCompletionDialog(
+  Widget _buildCompletionBottomPanel(
     BuildContext context,
     GameViewModelState state,
     GameViewModel vm,
   ) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.bg,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.border, width: 1.5),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'LEVEL COMPLETED!',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.headingDark,
-                  letterSpacing: 1.0,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Moves: ${state.moveCount}  •  Time: ${_formatTime(state.elapsedSeconds)}',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.subtext,
-                ),
-              ),
-              const SizedBox(height: 20),
-              if (state.level != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.border, width: 1.0),
-                  ),
-                  child: SizedBox(
-                    width: 120,
-                    height: 120,
-                    child: GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: state.level!.gridSize,
-                        crossAxisSpacing: 2.0,
-                        mainAxisSpacing: 2.0,
-                      ),
-                      itemCount: state.level!.gridSize * state.level!.gridSize,
-                      itemBuilder: (context, index) {
-                        final r = index ~/ state.level!.gridSize;
-                        final c = index % state.level!.gridSize;
-                        final isFilled = state.level!.solutionGrid[r][c];
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: isFilled
-                                ? AppColors.accent
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-
-              // 1. Next Level Button
-              TangibleButton(
-                text: widget.isRandom ? 'Play Again' : 'Next Level',
-                onPressed: () async {
-                  await vm.completeLevel();
-                  if (!dialogContext.mounted) return;
-                  Navigator.pop(dialogContext);
-                  if (widget.isRandom) {
-                    vm.loadRandomLevel(widget.randomDifficulty ?? 'Easy');
-                  } else {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            GameView(levelNumber: widget.levelNumber + 1),
-                      ),
-                    );
-                  }
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              // 2. Buy Me a Coffee Button
-              TangibleButton(
-                text: 'Buy Me a Coffee',
-                isSecondary: true,
-                icon: Icons.coffee_rounded,
-                onPressed: () async {
-                  final Uri url = Uri.parse('https://ko-fi.com/sidhant947');
-                  if (!await launchUrl(
-                    url,
-                    mode: LaunchMode.externalApplication,
-                  )) {
-                    throw Exception('Could not launch $url');
-                  }
-                },
-              ),
-
-              const SizedBox(height: 12),
-
-              // 3. Home Button
-              TangibleButton(
-                text: 'Home',
-                isSecondary: true,
-                icon: Icons.home_rounded,
-                onPressed: () async {
-                  await vm.completeLevel();
-                  if (!dialogContext.mounted) return;
-                  Navigator.pop(dialogContext);
-                  Navigator.pop(context);
-                },
-              ),
-            ],
-          ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [
+            AppColors.bg,
+            AppColors.bg.withValues(alpha: 0.95),
+            AppColors.bg.withValues(alpha: 0.6),
+            AppColors.bg.withValues(alpha: 0.0),
+          ],
+          stops: const [0.0, 0.55, 0.8, 1.0],
         ),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'CONGRATULATIONS!',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+              color: AppColors.headingDark,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          TangibleButton(
+            text: widget.isRandom ? 'Play Again' : 'Next Level',
+            height: 44,
+            fontSize: 13,
+            onPressed: () async {
+              await vm.completeLevel();
+              if (!context.mounted) return;
+              if (widget.isRandom) {
+                vm.loadRandomLevel(widget.randomDifficulty ?? 'Easy');
+              } else {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        GameView(levelNumber: widget.levelNumber + 1),
+                  ),
+                );
+              }
+            },
+          ),
+          const SizedBox(height: 8),
+          TangibleButton(
+            text: 'Home',
+            isSecondary: true,
+            icon: Icons.home_rounded,
+            height: 44,
+            fontSize: 13,
+            onPressed: () async {
+              await vm.completeLevel();
+              if (!context.mounted) return;
+              Navigator.pop(context);
+            },
+          ),
+          const SizedBox(height: 8),
+          TangibleButton(
+            text: 'Buy Me a Coffee',
+            isSecondary: true,
+            icon: Icons.coffee_rounded,
+            height: 44,
+            fontSize: 13,
+            onPressed: () async {
+              final Uri url = Uri.parse('https://ko-fi.com/sidhant947');
+              if (!await launchUrl(
+                url,
+                mode: LaunchMode.externalApplication,
+              )) {
+                throw Exception('Could not launch $url');
+              }
+            },
+          ),
+        ],
       ),
     );
   }

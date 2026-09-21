@@ -11,12 +11,16 @@ class TangibleButton extends ConsumerStatefulWidget {
     required this.onPressed,
     this.isSecondary = false,
     this.icon,
+    this.height = 54.0,
+    this.fontSize = 16.0,
   });
 
   final String text;
   final VoidCallback? onPressed;
   final bool isSecondary;
   final IconData? icon;
+  final double height;
+  final double fontSize;
 
   @override
   ConsumerState<TangibleButton> createState() => _TangibleButtonState();
@@ -47,7 +51,7 @@ class _TangibleButtonState extends ConsumerState<TangibleButton> {
             },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 60),
-        height: 54,
+        height: widget.height,
         width: double.infinity,
         transform: Matrix4.translationValues(0, _isPressed ? 4 : 0, 0),
         decoration: BoxDecoration(
@@ -72,13 +76,13 @@ class _TangibleButtonState extends ConsumerState<TangibleButton> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (widget.icon != null) ...[
-              Icon(widget.icon, color: textColor, size: 20),
+              Icon(widget.icon, color: textColor, size: widget.fontSize + 4),
               const SizedBox(width: 8),
             ],
             Text(
               widget.text.toUpperCase(),
               style: TextStyle(
-                fontSize: 16,
+                fontSize: widget.fontSize,
                 fontWeight: FontWeight.w900,
                 color: textColor,
                 letterSpacing: 1.2,
