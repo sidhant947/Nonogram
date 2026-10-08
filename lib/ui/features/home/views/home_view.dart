@@ -52,7 +52,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
           color: AppColors.surface,
           shape: BoxShape.circle,
           border: Border.all(
-            color: Colors.white24,
+            color: AppColors.border,
             width: 1.0,
           ),
         ),
@@ -67,6 +67,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(progressRepositoryProvider);
     final state = ref.watch(homeViewModelProvider);
 
     return Scaffold(
@@ -92,7 +93,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         color: AppColors.surface,
                         borderRadius: BorderRadius.circular(30),
                         border: Border.all(
-                          color: Colors.white24,
+                          color: AppColors.border,
                           width: 1.0,
                         ),
                       ),
@@ -242,7 +243,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
             color: AppColors.bg,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Colors.white24,
+              color: AppColors.border,
               width: 1.0,
             ),
           ),

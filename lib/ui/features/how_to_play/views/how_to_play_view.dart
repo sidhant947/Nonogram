@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../providers.dart';
 
-class HowToPlayView extends StatelessWidget {
+class HowToPlayView extends ConsumerWidget {
   const HowToPlayView({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(progressRepositoryProvider);
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(

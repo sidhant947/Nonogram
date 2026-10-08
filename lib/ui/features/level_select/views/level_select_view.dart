@@ -10,6 +10,7 @@ class LevelSelectView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(progressRepositoryProvider);
     final homeState = ref.watch(homeViewModelProvider);
     final highestCompleted = homeState.progress?.highestLevelCompleted ?? 0;
     final highestUnlocked = highestCompleted + 1;

@@ -8,10 +8,23 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: AppColors.bg,
+      scaffoldBackgroundColor: AppThemes.classic.bg,
       colorScheme: ColorScheme.dark(
-        primary: AppColors.accent,
-        surface: AppColors.surface,
+        primary: AppThemes.classic.accent,
+        surface: AppThemes.classic.surface,
+      ),
+      fontFamily: 'BebasNeue',
+    );
+  }
+
+  static ThemeData get lightTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: AppThemes.light.bg,
+      colorScheme: ColorScheme.light(
+        primary: AppThemes.light.accent,
+        surface: AppThemes.light.surface,
       ),
       fontFamily: 'BebasNeue',
     );

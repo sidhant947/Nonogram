@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -126,6 +127,46 @@ class SettingsView extends ConsumerWidget {
                   child: Column(
                     children: [
                       ListTile(
+                        contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
+                        title: Text(
+                          'Theme',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.headingDark,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        subtitle: Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Row(
+                            children: [
+                              _buildThemeOption(
+                                ref: ref,
+                                label: 'Light',
+                                mode: 'light',
+                                icon: Icons.light_mode_rounded,
+                              ),
+                              const SizedBox(width: 8),
+                              _buildThemeOption(
+                                ref: ref,
+                                label: 'Dark',
+                                mode: 'dark',
+                                icon: Icons.dark_mode_rounded,
+                              ),
+                              const SizedBox(width: 8),
+                              _buildThemeOption(
+                                ref: ref,
+                                label: 'System',
+                                mode: 'system',
+                                icon: Icons.brightness_auto_rounded,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Divider(color: AppColors.border, height: 1),
+                      ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                         title: Text(
                           'Haptic Feedback',
@@ -202,6 +243,65 @@ class SettingsView extends ConsumerWidget {
                 isSecondary: true,
                 icon: Icons.restore_rounded,
                 onPressed: () => _showResetConfirmationDialog(context, ref),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemeOption({
+    required WidgetRef ref,
+    required String label,
+    required String mode,
+    required IconData icon,
+  }) {
+    final currentMode = ref.watch(progressRepositoryProvider).themeMode;
+    final isSelected = currentMode == mode;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (ref.read(progressRepositoryProvider).hapticsEnabled) {
+            HapticFeedback.selectionClick();
+          }
+          ref.read(progressRepositoryProvider).setThemeMode(mode);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.accent : AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected
+                  ? (AppColors.accent.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                  : AppColors.border,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 16,
+                color: isSelected
+                    ? (AppColors.accent.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                    : AppColors.subtext,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: isSelected
+                      ? (AppColors.accent.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                      : AppColors.headingDark,
+                  letterSpacing: 0.8,
+                ),
               ),
             ],
           ),

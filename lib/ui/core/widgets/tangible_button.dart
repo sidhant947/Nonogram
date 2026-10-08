@@ -31,10 +31,13 @@ class _TangibleButtonState extends ConsumerState<TangibleButton> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(progressRepositoryProvider);
     final bool isDisabled = widget.onPressed == null;
     final Color bgColor = widget.isSecondary ? AppColors.surface : AppColors.buttonBg;
-    final Color textColor = AppColors.buttonText;
-    final Color shadowColor = widget.isSecondary ? Colors.black54 : Colors.black87;
+    final Color textColor = widget.isSecondary ? AppColors.headingDark : AppColors.buttonText;
+    final Color shadowColor = widget.isSecondary
+        ? (AppColors.bg.computeLuminance() > 0.5 ? const Color(0x1F000000) : Colors.black54)
+        : (AppColors.bg.computeLuminance() > 0.5 ? const Color(0x3D000000) : Colors.black87);
 
     return GestureDetector(
       onTapDown: isDisabled ? null : (_) => setState(() => _isPressed = true),

@@ -311,6 +311,54 @@ class GameViewModel extends StateNotifier<GameViewModelState> {
     _persistInProgress();
   }
 
+  void applyStroke(Iterable<(int, int)> coords, CellState next) {
+    final level = state.level;
+    if (state.isComplete || level == null || coords.isEmpty) return;
+
+    final n = level.gridSize;
+    final newBoard = List.generate(
+      n,
+      (row) => List<CellState>.from(state.board[row]),
+    );
+
+    int newlyFilled = 0;
+    bool changed = false;
+
+    for (final (r, c) in coords) {
+      if (r < 0 || r >= n || c < 0 || c >= n) continue;
+      if (newBoard[r][c] != next) {
+        if (next == CellState.filled) newlyFilled++;
+        newBoard[r][c] = next;
+        changed = true;
+      }
+    }
+
+    if (!changed) return;
+
+    _pushUndo();
+
+    final newConflicts = NonogramRules.computeConflicts(newBoard, level);
+    final isComplete = NonogramRules.isComplete(newBoard, level);
+
+    if (isComplete) {
+      _triggerHaptic(HapticFeedback.heavyImpact);
+      _stopTimer();
+    } else {
+      _triggerHaptic(HapticFeedback.lightImpact);
+    }
+
+    state = state.copyWith(
+      board: newBoard,
+      conflicts: newConflicts,
+      moveCount: state.moveCount + newlyFilled,
+      isComplete: isComplete,
+      canUndo: _undoStack.isNotEmpty,
+      clearHint: true,
+    );
+
+    _persistInProgress();
+  }
+
   void _pushUndo() {
     final snapshotBoard = state.board
         .map((row) => List<CellState>.from(row))

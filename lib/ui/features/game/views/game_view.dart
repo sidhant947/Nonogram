@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -28,6 +29,18 @@ class GameView extends ConsumerStatefulWidget {
 
 class _GameViewState extends ConsumerState<GameView> {
   CellState _currentDrawMode = CellState.filled;
+  int _pointerCount = 0;
+  (int, int)? _dragStart;
+  Axis? _dragAxis;
+  Set<(int, int)> _dragCells = {};
+  CellState? _dragTargetState;
+  Timer? _longPressTimer;
+
+  @override
+  void dispose() {
+    _longPressTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -53,6 +66,7 @@ class _GameViewState extends ConsumerState<GameView> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(progressRepositoryProvider);
     final state = ref.watch(gameViewModelProvider);
     final vm = ref.read(gameViewModelProvider.notifier);
 
@@ -116,18 +130,24 @@ class _GameViewState extends ConsumerState<GameView> {
                             ).createShader(bounds);
                           },
                           blendMode: BlendMode.dstIn,
-                          child: InteractiveViewer(
-                            minScale: 0.8,
-                            maxScale: 4.0,
-                            boundaryMargin: const EdgeInsets.all(40.0),
-                            clipBehavior: Clip.none,
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0,
-                                  vertical: 8.0,
+                          child: Listener(
+                            onPointerDown: (_) => setState(() => _pointerCount++),
+                            onPointerUp: (_) => setState(() => _pointerCount = (_pointerCount - 1).clamp(0, 10)),
+                            onPointerCancel: (_) => setState(() => _pointerCount = (_pointerCount - 1).clamp(0, 10)),
+                            child: InteractiveViewer(
+                              minScale: 0.8,
+                              maxScale: 4.0,
+                              boundaryMargin: const EdgeInsets.all(40.0),
+                              clipBehavior: Clip.none,
+                              panEnabled: _pointerCount >= 2,
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16.0,
+                                    vertical: 8.0,
+                                  ),
+                                  child: _buildNonogramGrid(context, state, vm),
                                 ),
-                                child: _buildNonogramGrid(context, state, vm),
                               ),
                             ),
                           ),
@@ -478,7 +498,9 @@ class _GameViewState extends ConsumerState<GameView> {
           color: isSelected ? color : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? Colors.white : AppColors.border,
+            color: isSelected
+                ? (color.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                : AppColors.border,
             width: 2,
           ),
           boxShadow: isSelected
@@ -496,7 +518,7 @@ class _GameViewState extends ConsumerState<GameView> {
             Icon(
               icon,
               color: isSelected
-                  ? (color == Colors.white || color == AppColors.accent
+                  ? (color.computeLuminance() > 0.5
                         ? Colors.black
                         : Colors.white)
                   : color,
@@ -509,7 +531,7 @@ class _GameViewState extends ConsumerState<GameView> {
                 fontWeight: FontWeight.w900,
                 fontSize: 16,
                 color: isSelected
-                    ? (color == Colors.white || color == AppColors.accent
+                    ? (color.computeLuminance() > 0.5
                           ? Colors.black
                           : Colors.white)
                     : AppColors.headingDark,
@@ -572,104 +594,96 @@ class _GameViewState extends ConsumerState<GameView> {
         return FittedBox(
           fit: BoxFit.contain,
           alignment: Alignment.center,
-          child: Table(
-            columnWidths: {
-              0: FixedColumnWidth(rowClueWidth),
-              for (int c = 0; c < size; c++) c + 1: FixedColumnWidth(cellSize),
-            },
-            children: [
-              // Top Header Row for Column Clues
-              TableRow(
-                children: [
-                  const SizedBox.shrink(), // Empty top-left corner
-                  for (int c = 0; c < size; c++)
-                    Container(
-                      height: clueHeight,
-                      alignment: Alignment.bottomCenter,
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.bottomCenter,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: level.colClues[c]
-                              .map(
-                                (val) => Text(
-                                  '$val',
-                                  style: TextStyle(
-                                    fontSize: fontSize,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.subtext,
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              // Rows with Row Clues + Board Cells
-              for (int r = 0; r < size; r++)
+          child: Listener(
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: (event) => _onGridPointerDown(
+              event,
+              rowClueWidth,
+              clueHeight,
+              cellSize,
+              size,
+              state,
+              vm,
+            ),
+            onPointerMove: (event) => _onGridPointerMove(
+              event,
+              rowClueWidth,
+              clueHeight,
+              cellSize,
+              size,
+            ),
+            onPointerUp: (event) => _onGridPointerUp(vm),
+            onPointerCancel: (event) => _onGridPointerCancel(),
+            child: Table(
+              columnWidths: {
+                0: FixedColumnWidth(rowClueWidth),
+                for (int c = 0; c < size; c++) c + 1: FixedColumnWidth(cellSize),
+              },
+              children: [
                 TableRow(
                   children: [
-                    // Row Clue
-                    Container(
-                      height: cellSize,
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 8),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerRight,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: level.rowClues[r]
-                              .map(
-                                (val) => Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 2.0,
-                                  ),
-                                  child: Text(
+                    const SizedBox.shrink(),
+                    for (int c = 0; c < size; c++)
+                      Container(
+                        height: clueHeight,
+                        alignment: Alignment.bottomCenter,
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.bottomCenter,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: level.colClues[c]
+                                .map(
+                                  (val) => Text(
                                     '$val',
                                     style: TextStyle(
                                       fontSize: fontSize,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.headingDark,
+                                      color: AppColors.subtext,
                                     ),
                                   ),
-                                ),
-                              )
-                              .toList(),
+                                )
+                                .toList(),
+                          ),
                         ),
                       ),
-                    ),
-
-                    for (int c = 0; c < size; c++)
-                      GestureDetector(
-                        onTap: () {
-                          if (ref.read(progressRepositoryProvider).cycleModeEnabled) {
-                            vm.toggleCell(r, c);
-                          } else if (state.board[r][c] == _currentDrawMode) {
-                            vm.setCellState(r, c, CellState.empty);
-                          } else {
-                            vm.setCellState(r, c, _currentDrawMode);
-                          }
-                        },
-                        onLongPress: (!ref.read(progressRepositoryProvider).cycleModeEnabled &&
-                                ref.read(progressRepositoryProvider).longPressToCrossEnabled)
-                            ? () {
-                                if (ref.read(progressRepositoryProvider).hapticsEnabled) {
-                                  HapticFeedback.mediumImpact();
-                                }
-                                if (state.board[r][c] == CellState.cross) {
-                                  vm.setCellState(r, c, CellState.empty);
-                                } else {
-                                  vm.setCellState(r, c, CellState.cross);
-                                }
-                              }
-                            : null,
-                        child: Container(
+                  ],
+                ),
+                for (int r = 0; r < size; r++)
+                  TableRow(
+                    children: [
+                      Container(
+                        height: cellSize,
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: level.rowClues[r]
+                                .map(
+                                  (val) => Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 2.0,
+                                    ),
+                                    child: Text(
+                                      '$val',
+                                      style: TextStyle(
+                                        fontSize: fontSize,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.headingDark,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ),
+                      ),
+                      for (int c = 0; c < size; c++)
+                        Container(
                           width: cellSize,
                           height: cellSize,
                           margin: const EdgeInsets.all(1.0),
@@ -685,24 +699,188 @@ class _GameViewState extends ConsumerState<GameView> {
                               width: state.hintCell == (r * size + c) ? 2.5 : 1,
                             ),
                           ),
-                          child: _buildCellContent(state.board[r][c], cellSize),
+                          child: _buildCellContent(
+                            _getDisplayCellState(r, c, state),
+                            cellSize,
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-            ],
+                    ],
+                  ),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
+  CellState _getDisplayCellState(int r, int c, GameViewModelState state) {
+    if (_dragCells.contains((r, c)) && _dragTargetState != null) {
+      return _dragTargetState!;
+    }
+    return state.board[r][c];
+  }
+
   Color _getCellColor(int r, int c, GameViewModelState state) {
-    final cellState = state.board[r][c];
+    final cellState = _getDisplayCellState(r, c, state);
     if (cellState == CellState.filled) {
       return AppColors.accent;
     }
     return AppColors.surface;
+  }
+
+  void _onGridPointerDown(
+    PointerDownEvent event,
+    double rowClueWidth,
+    double clueHeight,
+    double cellSize,
+    int size,
+    GameViewModelState state,
+    GameViewModel vm,
+  ) {
+    if (state.isComplete || _pointerCount > 1) {
+      _cancelDrag();
+      return;
+    }
+
+    final double gridX = event.localPosition.dx - rowClueWidth;
+    final double gridY = event.localPosition.dy - clueHeight;
+    if (gridX < 0 || gridY < 0 || gridX >= size * cellSize || gridY >= size * cellSize) {
+      return;
+    }
+
+    final int c = (gridX / cellSize).floor();
+    final int r = (gridY / cellSize).floor();
+    if (r < 0 || r >= size || c < 0 || c >= size) return;
+
+    final cell = (r, c);
+    _dragStart = cell;
+    _dragAxis = null;
+
+    final current = state.board[r][c];
+    if (ref.read(progressRepositoryProvider).cycleModeEnabled) {
+      if (current == CellState.empty) {
+        _dragTargetState = CellState.filled;
+      } else if (current == CellState.filled) {
+        _dragTargetState = CellState.cross;
+      } else {
+        _dragTargetState = CellState.empty;
+      }
+    } else {
+      if (current == _currentDrawMode) {
+        _dragTargetState = CellState.empty;
+      } else {
+        _dragTargetState = _currentDrawMode;
+      }
+    }
+
+    _dragCells = {cell};
+
+    if (!ref.read(progressRepositoryProvider).cycleModeEnabled &&
+        ref.read(progressRepositoryProvider).longPressToCrossEnabled) {
+      _longPressTimer?.cancel();
+      _longPressTimer = Timer(const Duration(milliseconds: 350), () {
+        if (_dragStart == cell && _dragCells.length == 1) {
+          if (ref.read(progressRepositoryProvider).hapticsEnabled) {
+            HapticFeedback.mediumImpact();
+          }
+          final cur = state.board[r][c];
+          _dragTargetState = cur == CellState.cross ? CellState.empty : CellState.cross;
+          setState(() {});
+        }
+      });
+    }
+
+    setState(() {});
+  }
+
+  void _onGridPointerMove(
+    PointerMoveEvent event,
+    double rowClueWidth,
+    double clueHeight,
+    double cellSize,
+    int size,
+  ) {
+    if (_pointerCount > 1) {
+      _cancelDrag();
+      return;
+    }
+    if (_dragStart == null || _dragTargetState == null) return;
+
+    final double gridX = event.localPosition.dx - rowClueWidth;
+    final double gridY = event.localPosition.dy - clueHeight;
+
+    final int c = (gridX / cellSize).floor().clamp(0, size - 1);
+    final int r = (gridY / cellSize).floor().clamp(0, size - 1);
+    final (r0, c0) = _dragStart!;
+
+    if (r != r0 || c != c0) {
+      _longPressTimer?.cancel();
+    }
+
+    if (_dragAxis == null && (r != r0 || c != c0)) {
+      _dragAxis = (c - c0).abs() >= (r - r0).abs()
+          ? Axis.horizontal
+          : Axis.vertical;
+    }
+
+    final newCells = <(int, int)>{};
+    if (_dragAxis == Axis.horizontal) {
+      final minC = c0 < c ? c0 : c;
+      final maxC = c0 > c ? c0 : c;
+      for (int k = minC; k <= maxC; k++) {
+        newCells.add((r0, k));
+      }
+    } else if (_dragAxis == Axis.vertical) {
+      final minR = r0 < r ? r0 : r;
+      final maxR = r0 > r ? r0 : r;
+      for (int k = minR; k <= maxR; k++) {
+        newCells.add((k, c0));
+      }
+    } else {
+      newCells.add((r0, c0));
+    }
+
+    if (newCells.length > _dragCells.length &&
+        ref.read(progressRepositoryProvider).hapticsEnabled) {
+      HapticFeedback.selectionClick();
+    }
+
+    setState(() {
+      _dragCells = newCells;
+    });
+  }
+
+  void _onGridPointerUp(GameViewModel vm) {
+    _longPressTimer?.cancel();
+    if (_dragStart != null && _dragCells.isNotEmpty && _dragTargetState != null) {
+      final cellsToApply = _dragCells.toList();
+      final target = _dragTargetState!;
+      _dragStart = null;
+      _dragCells = {};
+      _dragTargetState = null;
+      _dragAxis = null;
+      setState(() {});
+      vm.applyStroke(cellsToApply, target);
+    } else {
+      _cancelDrag();
+    }
+  }
+
+  void _onGridPointerCancel() {
+    _cancelDrag();
+  }
+
+  void _cancelDrag() {
+    _longPressTimer?.cancel();
+    if (_dragStart != null || _dragCells.isNotEmpty || _dragTargetState != null) {
+      setState(() {
+        _dragStart = null;
+        _dragCells = {};
+        _dragTargetState = null;
+        _dragAxis = null;
+      });
+    }
   }
 
   Widget? _buildCellContent(CellState cellState, double cellSize) {

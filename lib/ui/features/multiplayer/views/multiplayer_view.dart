@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/tangible_button.dart';
+import '../../../providers.dart';
 import '../../game/views/game_view.dart';
 
 class MultiplayerView extends ConsumerStatefulWidget {
@@ -80,6 +81,7 @@ class _MultiplayerViewState extends ConsumerState<MultiplayerView> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(progressRepositoryProvider);
     return Scaffold(
       backgroundColor: AppColors.bg,
       appBar: AppBar(

@@ -63,6 +63,26 @@ class AppThemes {
     isDark: true,
   );
 
+  static const GameThemeData light = GameThemeData(
+    id: 'light',
+    name: 'Classic Light',
+    bg: Color(0xFFF5F5F7),
+    surface: Color(0xFFFFFFFF),
+    surfaceLight: Color(0xFFE5E7EB),
+    accent: Color(0xFF121212),
+    buttonBg: Color(0xFF121212),
+    buttonText: Color(0xFFFFFFFF),
+    gold: Color(0xFFD97706),
+    cellFilled: Color(0xFF121212),
+    cellCross: Color(0xFFEF4444),
+    cellEmpty: Color(0xFFFFFFFF),
+    headingDark: Color(0xFF121212),
+    subtext: Color(0xFF6B7280),
+    border: Color(0xFFE5E7EB),
+    conflictRed: Color(0xFFEF4444),
+    isDark: false,
+  );
+
   static const GameThemeData matcha = GameThemeData(
     id: 'matcha',
     name: 'Matcha',
@@ -245,6 +265,7 @@ class AppThemes {
 
   static const List<GameThemeData> allThemes = [
     classic,
+    light,
     matcha,
     sakura,
     lavender,
