@@ -683,25 +683,27 @@ class _GameViewState extends ConsumerState<GameView> {
                         ),
                       ),
                       for (int c = 0; c < size; c++)
-                        Container(
+                        SizedBox(
                           width: cellSize,
                           height: cellSize,
-                          margin: const EdgeInsets.all(1.0),
-                          decoration: BoxDecoration(
-                            color: _getCellColor(r, c, state),
-                            borderRadius: BorderRadius.circular(
-                              size > 8 ? 4 : 6,
+                          child: Container(
+                            margin: const EdgeInsets.all(1.0),
+                            decoration: BoxDecoration(
+                              color: _getCellColor(r, c, state),
+                              borderRadius: BorderRadius.circular(
+                                size > 8 ? 4 : 6,
+                              ),
+                              border: Border.all(
+                                color: state.hintCell == (r * size + c)
+                                    ? AppColors.gold
+                                    : AppColors.border,
+                                width: state.hintCell == (r * size + c) ? 2.5 : 1,
+                              ),
                             ),
-                            border: Border.all(
-                              color: state.hintCell == (r * size + c)
-                                  ? AppColors.gold
-                                  : AppColors.border,
-                              width: state.hintCell == (r * size + c) ? 2.5 : 1,
+                            child: _buildCellContent(
+                              _getDisplayCellState(r, c, state),
+                              cellSize,
                             ),
-                          ),
-                          child: _buildCellContent(
-                            _getDisplayCellState(r, c, state),
-                            cellSize,
                           ),
                         ),
                     ],
