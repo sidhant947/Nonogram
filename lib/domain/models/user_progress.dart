@@ -16,6 +16,7 @@ class UserProgress {
     this.hapticsEnabled = true,
     this.longPressToCrossEnabled = true,
     this.cycleModeEnabled = false,
+    this.singleModeEnabled = false,
     this.themeMode = 'system',
   });
 
@@ -33,6 +34,7 @@ class UserProgress {
   final bool hapticsEnabled;
   final bool longPressToCrossEnabled;
   final bool cycleModeEnabled;
+  final bool singleModeEnabled;
   final String themeMode;
 
   UserProgress copyWith({
@@ -48,6 +50,7 @@ class UserProgress {
     bool? hapticsEnabled,
     bool? longPressToCrossEnabled,
     bool? cycleModeEnabled,
+    bool? singleModeEnabled,
     String? themeMode,
   }) {
     return UserProgress(
@@ -65,6 +68,7 @@ class UserProgress {
       longPressToCrossEnabled:
           longPressToCrossEnabled ?? this.longPressToCrossEnabled,
       cycleModeEnabled: cycleModeEnabled ?? this.cycleModeEnabled,
+      singleModeEnabled: singleModeEnabled ?? this.singleModeEnabled,
       themeMode: themeMode ?? this.themeMode,
     );
   }
@@ -124,6 +128,7 @@ class UserProgress {
       hapticsEnabled: hapticsEnabled,
       longPressToCrossEnabled: longPressToCrossEnabled,
       cycleModeEnabled: cycleModeEnabled,
+      singleModeEnabled: singleModeEnabled,
       themeMode: themeMode,
     );
   }

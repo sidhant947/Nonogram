@@ -17,6 +17,8 @@ class ProgressRepository extends ChangeNotifier {
 
   bool get cycleModeEnabled => _cachedProgress?.cycleModeEnabled ?? false;
 
+  bool get singleModeEnabled => _cachedProgress?.singleModeEnabled ?? false;
+
   String get themeMode => _cachedProgress?.themeMode ?? 'system';
 
   void updateAppColors([Brightness? platformBrightness]) {
@@ -63,6 +65,11 @@ class ProgressRepository extends ChangeNotifier {
   Future<void> toggleCycleMode() async {
     final current = await getProgress();
     await saveProgress(current.copyWith(cycleModeEnabled: !current.cycleModeEnabled));
+  }
+
+  Future<void> toggleSingleMode() async {
+    final current = await getProgress();
+    await saveProgress(current.copyWith(singleModeEnabled: !current.singleModeEnabled));
   }
 
   Future<void> completeLevel(int levelNumber, int moves) async {

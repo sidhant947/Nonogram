@@ -18,10 +18,7 @@ class SettingsView extends ConsumerWidget {
           decoration: BoxDecoration(
             color: AppColors.bg,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: AppColors.border,
-              width: 1.0,
-            ),
+            border: Border.all(color: AppColors.border, width: 1.0),
           ),
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -104,7 +101,10 @@ class SettingsView extends ConsumerWidget {
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.headingDark),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: AppColors.headingDark,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -119,15 +119,17 @@ class SettingsView extends ConsumerWidget {
                   decoration: BoxDecoration(
                     color: AppColors.surface,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppColors.border,
-                      width: 1.0,
-                    ),
+                    border: Border.all(color: AppColors.border, width: 1.0),
                   ),
                   child: Column(
                     children: [
                       ListTile(
-                        contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 14),
+                        contentPadding: const EdgeInsets.fromLTRB(
+                          20,
+                          12,
+                          20,
+                          14,
+                        ),
                         title: Text(
                           'Theme',
                           style: TextStyle(
@@ -167,7 +169,10 @@ class SettingsView extends ConsumerWidget {
                       ),
                       Divider(color: AppColors.border, height: 1),
                       ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 4,
+                        ),
                         title: Text(
                           'Haptic Feedback',
                           style: TextStyle(
@@ -178,19 +183,26 @@ class SettingsView extends ConsumerWidget {
                           ),
                         ),
                         trailing: Switch(
-                          value: ref.watch(progressRepositoryProvider).hapticsEnabled,
+                          value: ref
+                              .watch(progressRepositoryProvider)
+                              .hapticsEnabled,
                           activeThumbColor: Colors.white,
                           activeTrackColor: Colors.grey[700],
                           inactiveThumbColor: AppColors.subtext,
                           inactiveTrackColor: AppColors.bg,
                           onChanged: (val) {
-                            ref.read(progressRepositoryProvider).toggleHaptics();
+                            ref
+                                .read(progressRepositoryProvider)
+                                .toggleHaptics();
                           },
                         ),
                       ),
                       Divider(color: AppColors.border, height: 1),
                       ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 4,
+                        ),
                         title: Text(
                           'Long Press to Cross',
                           style: TextStyle(
@@ -201,19 +213,26 @@ class SettingsView extends ConsumerWidget {
                           ),
                         ),
                         trailing: Switch(
-                          value: ref.watch(progressRepositoryProvider).longPressToCrossEnabled,
+                          value: ref
+                              .watch(progressRepositoryProvider)
+                              .longPressToCrossEnabled,
                           activeThumbColor: Colors.white,
                           activeTrackColor: Colors.grey[700],
                           inactiveThumbColor: AppColors.subtext,
                           inactiveTrackColor: AppColors.bg,
                           onChanged: (val) {
-                            ref.read(progressRepositoryProvider).toggleLongPressToCross();
+                            ref
+                                .read(progressRepositoryProvider)
+                                .toggleLongPressToCross();
                           },
                         ),
                       ),
                       Divider(color: AppColors.border, height: 1),
                       ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 4,
+                        ),
                         title: Text(
                           'Cycle Mode',
                           style: TextStyle(
@@ -224,13 +243,47 @@ class SettingsView extends ConsumerWidget {
                           ),
                         ),
                         trailing: Switch(
-                          value: ref.watch(progressRepositoryProvider).cycleModeEnabled,
+                          value: ref
+                              .watch(progressRepositoryProvider)
+                              .cycleModeEnabled,
                           activeThumbColor: Colors.white,
                           activeTrackColor: Colors.grey[700],
                           inactiveThumbColor: AppColors.subtext,
                           inactiveTrackColor: AppColors.bg,
                           onChanged: (val) {
-                            ref.read(progressRepositoryProvider).toggleCycleMode();
+                            ref
+                                .read(progressRepositoryProvider)
+                                .toggleCycleMode();
+                          },
+                        ),
+                      ),
+                      Divider(color: AppColors.border, height: 1),
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 4,
+                        ),
+                        title: Text(
+                          'Single Hand Mode',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.headingDark,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        trailing: Switch(
+                          value: ref
+                              .watch(progressRepositoryProvider)
+                              .singleModeEnabled,
+                          activeThumbColor: Colors.white,
+                          activeTrackColor: Colors.grey[700],
+                          inactiveThumbColor: AppColors.subtext,
+                          inactiveTrackColor: AppColors.bg,
+                          onChanged: (val) {
+                            ref
+                                .read(progressRepositoryProvider)
+                                .toggleSingleMode();
                           },
                         ),
                       ),
@@ -276,7 +329,9 @@ class SettingsView extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               color: isSelected
-                  ? (AppColors.accent.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                  ? (AppColors.accent.computeLuminance() > 0.5
+                        ? Colors.black
+                        : Colors.white)
                   : AppColors.border,
               width: 1.5,
             ),
@@ -288,7 +343,9 @@ class SettingsView extends ConsumerWidget {
                 icon,
                 size: 16,
                 color: isSelected
-                    ? (AppColors.accent.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                    ? (AppColors.accent.computeLuminance() > 0.5
+                          ? Colors.black
+                          : Colors.white)
                     : AppColors.subtext,
               ),
               const SizedBox(width: 6),
@@ -298,7 +355,9 @@ class SettingsView extends ConsumerWidget {
                   fontSize: 13,
                   fontWeight: FontWeight.w900,
                   color: isSelected
-                      ? (AppColors.accent.computeLuminance() > 0.5 ? Colors.black : Colors.white)
+                      ? (AppColors.accent.computeLuminance() > 0.5
+                            ? Colors.black
+                            : Colors.white)
                       : AppColors.headingDark,
                   letterSpacing: 0.8,
                 ),

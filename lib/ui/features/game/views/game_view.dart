@@ -139,7 +139,7 @@ class _GameViewState extends ConsumerState<GameView> {
                               maxScale: 4.0,
                               boundaryMargin: const EdgeInsets.all(40.0),
                               clipBehavior: Clip.none,
-                              panEnabled: _pointerCount >= 2,
+                              panEnabled: ref.watch(progressRepositoryProvider).singleModeEnabled || _pointerCount >= 2,
                               child: Center(
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -591,126 +591,160 @@ class _GameViewState extends ConsumerState<GameView> {
           availHeight * maxClueHeightRatio,
         );
 
-        return FittedBox(
-          fit: BoxFit.contain,
-          alignment: Alignment.center,
-          child: Listener(
-            behavior: HitTestBehavior.opaque,
-            onPointerDown: (event) => _onGridPointerDown(
-              event,
-              rowClueWidth,
-              clueHeight,
-              cellSize,
-              size,
-              state,
-              vm,
-            ),
-            onPointerMove: (event) => _onGridPointerMove(
-              event,
-              rowClueWidth,
-              clueHeight,
-              cellSize,
-              size,
-            ),
-            onPointerUp: (event) => _onGridPointerUp(vm),
-            onPointerCancel: (event) => _onGridPointerCancel(),
-            child: Table(
-              columnWidths: {
-                0: FixedColumnWidth(rowClueWidth),
-                for (int c = 0; c < size; c++) c + 1: FixedColumnWidth(cellSize),
-              },
+        final singleMode = ref.watch(progressRepositoryProvider).singleModeEnabled;
+
+        final gridTable = Table(
+          columnWidths: {
+            0: FixedColumnWidth(rowClueWidth),
+            for (int c = 0; c < size; c++) c + 1: FixedColumnWidth(cellSize),
+          },
+          children: [
+            TableRow(
               children: [
-                TableRow(
-                  children: [
-                    const SizedBox.shrink(),
-                    for (int c = 0; c < size; c++)
-                      Container(
-                        height: clueHeight,
-                        alignment: Alignment.bottomCenter,
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.bottomCenter,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: level.colClues[c]
-                                .map(
-                                  (val) => Text(
-                                    '$val',
-                                    style: TextStyle(
-                                      fontSize: fontSize,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.subtext,
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                for (int r = 0; r < size; r++)
-                  TableRow(
-                    children: [
-                      Container(
-                        height: cellSize,
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 8),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerRight,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: level.rowClues[r]
-                                .map(
-                                  (val) => Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 2.0,
-                                    ),
-                                    child: Text(
-                                      '$val',
-                                      style: TextStyle(
-                                        fontSize: fontSize,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.headingDark,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
-                      ),
-                      for (int c = 0; c < size; c++)
-                        SizedBox(
-                          width: cellSize,
-                          height: cellSize,
-                          child: Container(
-                            margin: const EdgeInsets.all(1.0),
-                            decoration: BoxDecoration(
-                              color: _getCellColor(r, c, state),
-                              borderRadius: BorderRadius.circular(
-                                size > 8 ? 4 : 6,
+                const SizedBox.shrink(),
+                for (int c = 0; c < size; c++)
+                  Container(
+                    height: clueHeight,
+                    alignment: Alignment.bottomCenter,
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.bottomCenter,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: level.colClues[c]
+                            .map(
+                              (val) => Text(
+                                '$val',
+                                style: TextStyle(
+                                  fontSize: fontSize,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.subtext,
+                                ),
                               ),
-                              border: Border.all(
-                                color: state.hintCell == (r * size + c)
-                                    ? AppColors.gold
-                                    : AppColors.border,
-                                width: state.hintCell == (r * size + c) ? 2.5 : 1,
-                              ),
-                            ),
-                            child: _buildCellContent(
-                              _getDisplayCellState(r, c, state),
-                              cellSize,
-                            ),
-                          ),
-                        ),
-                    ],
+                            )
+                            .toList(),
+                      ),
+                    ),
                   ),
               ],
             ),
-          ),
+            for (int r = 0; r < size; r++)
+              TableRow(
+                children: [
+                  Container(
+                    height: cellSize,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.only(right: 8),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: level.rowClues[r]
+                            .map(
+                              (val) => Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 2.0,
+                                ),
+                                child: Text(
+                                  '$val',
+                                  style: TextStyle(
+                                    fontSize: fontSize,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.headingDark,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ),
+                  ),
+                  for (int c = 0; c < size; c++)
+                    SizedBox(
+                      width: cellSize,
+                      height: cellSize,
+                      child: singleMode
+                          ? GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => _handleCellTap(r, c, state, vm),
+                              onLongPress: (!ref.read(progressRepositoryProvider).cycleModeEnabled &&
+                                      ref.read(progressRepositoryProvider).longPressToCrossEnabled)
+                                  ? () => _handleCellLongPress(r, c, state, vm)
+                                  : null,
+                              child: Container(
+                                margin: const EdgeInsets.all(1.0),
+                                decoration: BoxDecoration(
+                                  color: _getCellColor(r, c, state),
+                                  borderRadius: BorderRadius.circular(
+                                    size > 8 ? 4 : 6,
+                                  ),
+                                  border: Border.all(
+                                    color: state.hintCell == (r * size + c)
+                                        ? AppColors.gold
+                                        : AppColors.border,
+                                    width: state.hintCell == (r * size + c) ? 2.5 : 1,
+                                  ),
+                                ),
+                                child: _buildCellContent(
+                                  _getDisplayCellState(r, c, state),
+                                  cellSize,
+                                ),
+                              ),
+                            )
+                          : Container(
+                              margin: const EdgeInsets.all(1.0),
+                              decoration: BoxDecoration(
+                                color: _getCellColor(r, c, state),
+                                borderRadius: BorderRadius.circular(
+                                  size > 8 ? 4 : 6,
+                                ),
+                                border: Border.all(
+                                  color: state.hintCell == (r * size + c)
+                                      ? AppColors.gold
+                                      : AppColors.border,
+                                  width: state.hintCell == (r * size + c) ? 2.5 : 1,
+                                ),
+                              ),
+                              child: _buildCellContent(
+                                _getDisplayCellState(r, c, state),
+                                cellSize,
+                              ),
+                            ),
+                    ),
+                ],
+              ),
+          ],
+        );
+
+        return FittedBox(
+          fit: BoxFit.contain,
+          alignment: Alignment.center,
+          child: singleMode
+              ? gridTable
+              : Listener(
+                  behavior: HitTestBehavior.opaque,
+                  onPointerDown: (event) => _onGridPointerDown(
+                    event,
+                    rowClueWidth,
+                    clueHeight,
+                    cellSize,
+                    size,
+                    state,
+                    vm,
+                  ),
+                  onPointerMove: (event) => _onGridPointerMove(
+                    event,
+                    rowClueWidth,
+                    clueHeight,
+                    cellSize,
+                    size,
+                  ),
+                  onPointerUp: (event) => _onGridPointerUp(vm),
+                  onPointerCancel: (event) => _onGridPointerCancel(),
+                  child: gridTable,
+                ),
         );
       },
     );
@@ -729,6 +763,56 @@ class _GameViewState extends ConsumerState<GameView> {
       return AppColors.accent;
     }
     return AppColors.surface;
+  }
+
+  void _handleCellTap(
+    int r,
+    int c,
+    GameViewModelState state,
+    GameViewModel vm,
+  ) {
+    if (state.isComplete) return;
+
+    final current = state.board[r][c];
+    final CellState target;
+    if (ref.read(progressRepositoryProvider).cycleModeEnabled) {
+      if (current == CellState.empty) {
+        target = CellState.filled;
+      } else if (current == CellState.filled) {
+        target = CellState.cross;
+      } else {
+        target = CellState.empty;
+      }
+    } else {
+      if (current == _currentDrawMode) {
+        target = CellState.empty;
+      } else {
+        target = _currentDrawMode;
+      }
+    }
+
+    if (ref.read(progressRepositoryProvider).hapticsEnabled) {
+      HapticFeedback.lightImpact();
+    }
+
+    vm.applyStroke([(r, c)], target);
+  }
+
+  void _handleCellLongPress(
+    int r,
+    int c,
+    GameViewModelState state,
+    GameViewModel vm,
+  ) {
+    if (state.isComplete) return;
+
+    if (ref.read(progressRepositoryProvider).hapticsEnabled) {
+      HapticFeedback.mediumImpact();
+    }
+
+    final cur = state.board[r][c];
+    final target = cur == CellState.cross ? CellState.empty : CellState.cross;
+    vm.applyStroke([(r, c)], target);
   }
 
   void _onGridPointerDown(
